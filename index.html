@@ -1295,6 +1295,7 @@ function saveDraft() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       slug: state.slug, themeId: state.themeId, pages: state.pages,
       currentPageId: state.currentPageId, siteSettings: state.siteSettings,
+      html: state.html,
       savedAt: Date.now(),
     }));
     state.isDirty = false;
@@ -1355,6 +1356,7 @@ async function initAfterLogin(user) {
       state.pages = normalizePages(draft.pages);
       state.currentPageId = draft.currentPageId || state.pages[0]?.id;
       state.siteSettings = draft.siteSettings || { ...DEFAULT_SETTINGS };
+      state.html = draft.html || state.html;
     } else {
       state.themeId = 'racing';
       state.pages = normalizePages(THEMES.racing.defaultPages());
@@ -1393,6 +1395,18 @@ function switchMode(mode, save = true) {
     $('gui-mode-container').style.display = 'none';
     $('html-editor').value = state.html;
     $('preview-frame').srcdoc = state.html;
+
+    // 手動モード：入力に応じてプレビュー＆保存
+    $('html-editor').oninput = (e) => {
+      state.html = e.target.value;
+      state.isDirty = true;
+      clearTimeout(scheduleSave._t);
+      scheduleSave._t = setTimeout(saveDraft, SAVE_DEBOUNCE);
+      clearTimeout(switchMode._manualTimer);
+      switchMode._manualTimer = setTimeout(() => {
+        $('preview-frame').srcdoc = state.html;
+      }, 300);
+    };
   } else {
     $('manual-mode-container').style.display = 'none';
     $('gui-mode-container').style.display = 'flex';
