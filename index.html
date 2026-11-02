@@ -733,11 +733,12 @@ function renderGuiCanvas() {
 
   // Moveableの初期化（選択中の要素があればアタッチ）
   initMoveable();
-  if (state.selectedId) {
-    selectComponent(state.selectedId, false);
-  } else {
-    deselectComponent();
-  }
+// 修正後（render 引数を削除したので）
+if (state.selectedId) {
+  selectComponent(state.selectedId);
+} else {
+  deselectComponent();
+}
 }
 
 // ============================================================
@@ -796,14 +797,22 @@ function initMoveable() {
 // ============================================================
 // コンポーネント選択
 // ============================================================
-function selectComponent(id, render = true) {
+function selectComponent(id) {
+  // 前の選択を解除
+  if (state.selectedId && state.selectedId !== id) {
+    const prev = canvas.querySelector(`.gui-component[data-id="${state.selectedId}"]`);
+    if (prev) prev.classList.remove('selected');
+  }
   state.selectedId = id;
-  if (render) renderGuiCanvas(); // 選択状態を反映するため再描画（重いが確実）
+
   const comp = state.guiComponents.find(c => c.id === id);
   if (!comp) { deselectComponent(); return; }
 
   const el = canvas.querySelector(`.gui-component[data-id="${id}"]`);
-  if (el && moveable) {
+  if (!el) { deselectComponent(); return; }
+  el.classList.add('selected');
+
+  if (moveable) {
     moveable.target = el;
     moveable.updateRect();
   }
@@ -819,126 +828,6 @@ function deselectComponent() {
 // ============================================================
 // プロパティパネル
 // ============================================================
-function renderProperties(comp) {
-  const container = $('gui-properties-content');
-  if (!comp) {
-    container.innerHTML = '<div class="no-selection">コンポーネントを選択してください</div>';
-    return;
-  }
-
-  let html = '';
-  html += `<div class="form-group"><label>種類</label><div style="font-size:0.85rem;color:#aaa;">${escapeHtml(comp.type)}</div></div>`;
-
-  // サイズ・位置
-  html += `<div class="form-group"><label>幅 (px)</label><input type="number" id="prop-width" value="${comp.style.width}"></div>`;
-  html += `<div class="form-group"><label>高さ (px)</label><input type="number" id="prop-height" value="${comp.style.height}"></div>`;
-  html += `<div class="form-group"><label>X (px)</label><input type="number" id="prop-left" value="${comp.style.left}"></div>`;
-  html += `<div class="form-group"><label>Y (px)</label><input type="number" id="prop-top" value="${comp.style.top}"></div>`;
-
-  // テキスト・見出し用
-  if (comp.type === 'heading' || comp.type === 'text') {
-    html += `<div class="form-group"><label>フォントサイズ (px)</label><input type="number" id="prop-fontsize" value="${comp.style.fontSize || 16}"></div>`;
-    html += `<div class="form-group"><label>文字色</label><input type="color" id="prop-color" value="${comp.style.color || '#333333'}"></div>`;
-    html += `<div class="form-group"><label>背景色</label><input type="color" id="prop-bg" value="${toHex(comp.style.background || '#ffffff')}"></div>`;
-    html += `<div class="form-group"><label>テキスト配置</label><select id="prop-textalign">
-      <option value="left" ${comp.style.textAlign==='left'?'selected':''}>左</option>
-      <option value="center" ${comp.style.textAlign==='center'?'selected':''}>中央</option>
-      <option value="right" ${comp.style.textAlign==='right'?'selected':''}>右</option>
-    </select></div>`;
-    html += `<div class="form-group"><label>行の高さ</label><input type="number" step="0.1" id="prop-lineheight" value="${comp.style.lineHeight || 1.4}"></div>`;
-  }
-
-  // ボタン用
-  if (comp.type === 'button') {
-    html += `<div class="form-group"><label>ラベル</label><input type="text" id="prop-content" value="${escapeHtml(comp.content || '')}"></div>`;
-    html += `<div class="form-group"><label>リンク先</label><input type="text" id="prop-href" value="${escapeHtml(comp.props.href || '')}"></div>`;
-    html += `<div class="form-group"><label>背景色</label><input type="color" id="prop-bg" value="${toHex(comp.style.background || '#00d2ff')}"></div>`;
-    html += `<div class="form-group"><label>文字色</label><input type="color" id="prop-color" value="${toHex(comp.style.color || '#000000')}"></div>`;
-    html += `<div class="form-group"><label>角丸 (px)</label><input type="number" id="prop-radius" value="${comp.style.borderRadius || 4}"></div>`;
-  }
-
-  // 画像用
-  if (comp.type === 'image') {
-    html += `<div class="form-group"><label>角丸 (px)</label><input type="number" id="prop-radius" value="${comp.style.borderRadius || 0}"></div>`;
-    html += `<div class="form-group"><label>画像を変更</label><button class="btn btn-secondary" id="prop-change-image" style="width:100%;">ファイルを選択</button></div>`;
-  }
-
-  // 共通：削除ボタン
-  html += `<div style="margin-top:16px;border-top:1px solid #2a2a4a;padding-top:12px;"><button class="btn btn-danger" id="prop-delete" style="width:100%;">このコンポーネントを削除</button></div>`;
-
-  container.innerHTML = html;
-
-  // イベント登録
-  const bind = (id, field, transform = v => v) => {
-    const el = $(id);
-    if (!el) return;
-    el.addEventListener('input', () => {
-      const v = transform(el.value);
-      comp.style[field] = v;
-      scheduleSave();
-      // 再描画（サイズ変更を反映）
-      renderGuiCanvas();
-    });
-  };
-  bind('prop-width', 'width', v => Math.max(10, parseInt(v) || 10));
-  bind('prop-height', 'height', v => Math.max(10, parseInt(v) || 10));
-  bind('prop-left', 'left', v => parseInt(v) || 0);
-  bind('prop-top', 'top', v => parseInt(v) || 0);
-  if (comp.type === 'heading' || comp.type === 'text') {
-    bind('prop-fontsize', 'fontSize', v => parseInt(v) || 16);
-    bind('prop-color', 'color');
-    bind('prop-bg', 'background');
-    bind('prop-textalign', 'textAlign');
-    bind('prop-lineheight', 'lineHeight', v => parseFloat(v) || 1.4);
-  }
-  if (comp.type === 'button') {
-    const contentEl = $('prop-content');
-    if (contentEl) contentEl.addEventListener('input', () => {
-      comp.content = contentEl.value;
-      scheduleSave();
-      renderGuiCanvas();
-    });
-    const hrefEl = $('prop-href');
-    if (hrefEl) hrefEl.addEventListener('input', () => {
-      comp.props.href = hrefEl.value;
-      scheduleSave();
-    });
-    bind('prop-bg', 'background');
-    bind('prop-color', 'color');
-    bind('prop-radius', 'borderRadius', v => parseInt(v) || 0);
-  }
-  if (comp.type === 'image') {
-    bind('prop-radius', 'borderRadius', v => parseInt(v) || 0);
-    const btn = $('prop-change-image');
-    if (btn) btn.addEventListener('click', () => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'image/*';
-      input.onchange = () => {
-        const file = input.files[0];
-        if (!file) return;
-        if (file.size > 10 * 1024 * 1024) { toast('10MBを超えています', true); return; }
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          comp.props.src = ev.target.result;
-          scheduleSave();
-          renderGuiCanvas();
-        };
-        reader.readAsDataURL(file);
-      };
-      input.click();
-    });
-  }
-
-  const delBtn = $('prop-delete');
-  if (delBtn) delBtn.addEventListener('click', () => {
-    if (!confirm('このコンポーネントを削除しますか？')) return;
-    state.guiComponents = state.guiComponents.filter(c => c.id !== comp.id);
-    if (state.selectedId === comp.id) deselectComponent();
-    scheduleSave();
-    renderGuiCanvas();
-  });
-}
 
 function toHex(color) {
   if (!color) return '#ffffff';
@@ -1010,11 +899,12 @@ function addComponent(type) {
   comp.style.left = 50 + (count % 5) * 20;
   comp.style.top = 50 + (count % 5) * 20;
 
-  state.guiComponents.push(comp);
-  scheduleSave();
-  renderGuiCanvas();
-  selectComponent(id);
-  toast('コンポーネントを追加しました');
+// 修正後（renderGuiCanvas の中で selectComponent が呼ばれるので削除）
+state.guiComponents.push(comp);
+state.selectedId = id;    // 事前にセット
+scheduleSave();
+renderGuiCanvas();
+toast('コンポーネントを追加しました');
 }
 
 document.querySelector('.gui-palette').addEventListener('click', (e) => {
