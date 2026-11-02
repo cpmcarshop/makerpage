@@ -108,7 +108,25 @@ button.btn-danger:hover { background: #c73050; }
   </div>
 </div>
 
-
+<div id="not-maker-screen" class="screen">
+  <div class="not-maker-box">
+    <h2>メーカー登録が必要です</h2>
+    <p style="color:#aaa; margin-bottom:20px;">
+      メーカーページを作成するには、まず架空車街でメーカー登録を行ってください。
+    </p>
+    <a href="https://cpmcarshop.github.io/" class="btn" style="margin-bottom:10px; display:inline-block;">
+      架空車街で登録する
+    </a>
+    <button class="btn btn-secondary" id="retry-maker-check" style="width:100%; margin-bottom:10px;">
+      再チェック
+    </button>
+    <button class="btn btn-secondary" id="logout-from-notmaker" style="width:100%;">
+      ログアウト
+    </button>
+    <p id="debug-uid" style="color:#666; font-size:0.7rem; margin-top:20px; word-break:break-all; white-space:pre-wrap; text-align:left;"></p>
+  </div>
+</div>
+  
 <div id="editor-screen" class="screen">
   <div class="toolbar">
     <span class="brand">メーカーページ</span>
