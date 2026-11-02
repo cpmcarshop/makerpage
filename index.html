@@ -70,7 +70,14 @@ button.btn-sm { padding: 4px 10px; font-size: 0.75rem; }
 .section-palette button .icon { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: rgba(0,210,255,0.08); border-radius: 6px; font-size: 0.8rem; flex-shrink: 0; }
 
 /* 中央キャンバス */
-.canvas-wrapper { flex: 1; min-width: 0; overflow-y: auto; background: #0f0f1a; padding: 24px; }
+.canvas-wrapper { flex: 1; min-width: 0; display: flex; flex-direction: column; background: #0f0f1a; }
+.canvas-tabs { display: flex; gap: 4px; padding: 8px 12px; background: #16213e; border-bottom: 1px solid #2a2a4a; flex-shrink: 0; }
+.canvas-tab { padding: 6px 14px; background: transparent; border: 1px solid transparent; border-radius: 4px; color: #aaa; font-family: inherit; font-size: 0.85rem; cursor: pointer; }
+.canvas-tab:hover { background: rgba(255,255,255,0.05); }
+.canvas-tab.active { background: rgba(0,210,255,0.15); border-color: #00d2ff; color: #00d2ff; font-weight: bold; }
+.canvas-body { flex: 1; overflow-y: auto; padding: 24px; }
+.canvas-preview-frame { max-width: 1000px; margin: 0 auto; background: #fff; border-radius: 4px; box-shadow: 0 12px 48px rgba(0,0,0,0.5); overflow: hidden; }
+.canvas-preview-frame iframe { width: 100%; border: none; display: block; background: #fff; min-height: 400px; }
 .canvas-frame { max-width: 900px; margin: 0 auto; background: #fff; border-radius: 4px; box-shadow: 0 12px 48px rgba(0,0,0,0.5); overflow: hidden; }
 .canvas-frame iframe { width: 100%; border: none; display: block; background: #fff; }
 
@@ -211,9 +218,19 @@ button.btn-sm { padding: 4px 10px; font-size: 0.75rem; }
 
         <!-- 中央キャンバス -->
         <div class="canvas-wrapper">
-          <div class="section-list" id="section-list"></div>
+          <div class="canvas-tabs">
+            <button class="canvas-tab active" data-canvas-view="list">📋 並び替え</button>
+            <button class="canvas-tab" data-canvas-view="preview">👁 プレビュー</button>
+          </div>
+          <div class="canvas-body">
+            <div class="section-list" id="section-list"></div>
+            <div id="preview-view" style="display:none;">
+              <div class="canvas-preview-frame">
+                <iframe id="canvas-preview-iframe" sandbox="allow-scripts allow-forms allow-popups"></iframe>
+              </div>
+            </div>
+          </div>
         </div>
-
         <!-- 右プロパティ -->
         <div class="properties-panel">
           <h4>プロパティ</h4>
@@ -297,6 +314,7 @@ const state = {
   currentPageId: null,
   selectedSectionId: null,
   isDirty: false,
+  canvasView: 'list', // 'list' | 'preview'  ← 追加
 };
 
 const $ = (id) => document.getElementById(id);
@@ -657,7 +675,106 @@ ${fonts}
 </body>
 </html>`;
 }
+// ============================================================
+// 現在ページのプレビューHTML生成
+// ============================================================
+function generatePagePreviewHtml() {
+  const page = state.pages.find(p => p.id === state.currentPageId);
+  const t = THEMES[state.themeId] || THEMES.racing;
+  const v = t.vars;
 
+  if (!page) {
+    return `<!DOCTYPE html><html><body style="background:${v.bg};color:${v.textGray};font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">ページがありません</body></html>`;
+  }
+
+  const sections = page.sections.map(s => renderSectionPreviewHtml(s, state.themeId)).join('');
+
+  // ナビは <a> ではなく <span> にして、編集用プレビューでは遷移させない
+  const navHtml = state.pages.map(p =>
+    `<span class="nav-link ${p.id === page.id ? 'active' : ''}">${escapeHtml(p.name)}</span>`
+  ).join('');
+
+  const fonts = `<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Noto+Sans+JP:wght@400;700;900&family=Noto+Serif+JP:wght@400;600;700&family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">`;
+
+  return `<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>プレビュー</title>
+${fonts}
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: ${v.bg}; color: ${v.text}; font-family: ${v.fontMain}; line-height: 1.6; overflow-x: hidden; }
+  a { color: inherit; text-decoration: none; }
+  header { position: sticky; top: 0; z-index: 100; background: ${v.bg}ee; backdrop-filter: blur(8px); border-bottom: 1px solid ${v.border}; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
+  .logo { font-family: ${v.fontEn}; font-size: 1.2rem; font-weight: 900; letter-spacing: 2px; color: ${v.text}; }
+  nav { display: flex; gap: 16px; flex-wrap: wrap; }
+  .nav-link { font-size: 0.85rem; font-weight: 600; color: ${v.textGray}; cursor: default; }
+  .nav-link.active { color: ${v.primary}; }
+  footer { text-align: center; padding: 30px 20px; border-top: 1px solid ${v.border}; color: ${v.textGray}; font-size: 0.8rem; }
+  @media (max-width: 600px) {
+    header { padding: 10px 14px; flex-direction: column; gap: 8px; }
+    nav { justify-content: center; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="logo">${escapeHtml(state.maker?.makerName || 'MY SITE')}</div>
+    <nav>${navHtml}</nav>
+  </header>
+  ${sections}
+  <footer>&copy; ${escapeHtml(state.maker?.makerName || '')} — Created with 架空車街</footer>
+  <script>
+    function sendHeight() {
+      var h = document.documentElement.scrollHeight || document.body.scrollHeight;
+      parent.postMessage({ type: 'preview-height', height: h }, '*');
+    }
+    window.addEventListener('load', sendHeight);
+    window.addEventListener('resize', sendHeight);
+    setTimeout(sendHeight, 100);
+    setTimeout(sendHeight, 500);
+    setTimeout(sendHeight, 1500);
+  <\/script>
+</body>
+</html>`;
+}
+
+// ============================================================
+// プレビュー更新・切替
+// ============================================================
+let previewUpdateTimer = null;
+function schedulePreviewUpdate() {
+  if (state.canvasView !== 'preview') return;
+  clearTimeout(previewUpdateTimer);
+  previewUpdateTimer = setTimeout(updateCanvasPreview, 300);
+}
+
+function updateCanvasPreview() {
+  const iframe = $('canvas-preview-iframe');
+  if (!iframe) return;
+  const html = generatePagePreviewHtml();
+  iframe.srcdoc = html;
+}
+
+function switchCanvasView(view) {
+  state.canvasView = view;
+  document.querySelectorAll('.canvas-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.canvasView === view);
+  });
+  const listEl = $('section-list');
+  const previewEl = $('preview-view');
+  if (view === 'list') {
+    listEl.style.display = 'flex';
+    previewEl.style.display = 'none';
+  } else {
+    listEl.style.display = 'none';
+    previewEl.style.display = 'block';
+    updateCanvasPreview();
+  }
+}
 // ============================================================
 // エディタ：ページタブ
 // ============================================================
@@ -974,6 +1091,7 @@ function scheduleSave() {
   state.isDirty = true;
   clearTimeout(scheduleSave._t);
   scheduleSave._t = setTimeout(saveDraft, SAVE_DEBOUNCE);
+  schedulePreviewUpdate();   // ← 追加
 }
 function saveDraft() {
   try {
@@ -1090,9 +1208,22 @@ function switchMode(mode, save = true) {
     renderPageTabs();
     renderSectionList();
     renderPropertiesPanel();
+    if (state.canvasView === 'preview') updateCanvasPreview();   // ← 追加
   }
 }
+// 中央キャンバスのタブ切替
+document.querySelector('.canvas-tabs').addEventListener('click', (e) => {
+  const tab = e.target.closest('[data-canvas-view]');
+  if (tab) switchCanvasView(tab.dataset.canvasView);
+});
 
+// iframeから高さ通知を受け取ってiframeをリサイズ
+window.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'preview-height') {
+    const iframe = $('canvas-preview-iframe');
+    if (iframe) iframe.style.height = (e.data.height + 20) + 'px';
+  }
+});
 // ============================================================
 // イベント登録
 // ============================================================
@@ -1121,6 +1252,7 @@ $('page-tabs').addEventListener('click', (e) => {
     state.currentPageId = tab.dataset.pageId;
     state.selectedSectionId = null;
     renderPageTabs(); renderSectionList(); renderPropertiesPanel();
+    schedulePreviewUpdate();   // ← 追加
     return;
   }
   if (e.target.id === 'add-page-btn') {
@@ -1132,6 +1264,7 @@ $('page-tabs').addEventListener('click', (e) => {
     state.selectedSectionId = null;
     scheduleSave();
     renderPageTabs(); renderSectionList(); renderPropertiesPanel();
+    schedulePreviewUpdate();   // ← 追加
   }
 });
 
