@@ -384,8 +384,16 @@ async function initAfterLogin(user) {
 
     const maker = makerInfo && makerInfo.maker;
     if (!maker) {
-      console.warn('No maker found for uid:', user.uid);
-      setDebug('Your UID: ' + user.uid + '\n→ メーカーが見つかりません（DB未登録）');
+      const d = (makerInfo && makerInfo.debug) || {};
+      setDebug(
+        'Your UID: ' + user.uid + '\n' +
+        'mainWorkerStatus: ' + (d.mainWorkerStatus || '?') + '\n' +
+        'mainWorkerRawBody: ' + (d.mainWorkerRawBody || '?') + '\n' +
+        'makerFound: ' + (d.makerFound === true ? 'true' : (d.makerFound === false ? 'false' : '?')) + '\n' +
+        'makerId: ' + (d.makerId || '-') + '\n' +
+        'fetchError: ' + (d.fetchError || '-') + '\n' +
+        'parseError: ' + (d.parseError || '-')
+      );
       showScreen('not-maker');
       return;
     }
