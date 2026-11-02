@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>メーカーページ作成 - 架空車街</title>
-<!-- Moveable: ドラッグ・リサイズ・回転ライブラリ -->
-<script src="https://daybrush.com/moveable/release/latest/dist/moveable.min.js"></script>
 <style>
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; height: 100%; }
@@ -23,22 +21,23 @@ body { font-family: -apple-system, 'Segoe UI', 'Hiragino Sans', sans-serif; back
 
 .toolbar { background: #16213e; border-bottom: 1px solid #2a2a4a; padding: 8px 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex-shrink: 0; }
 .toolbar .brand { font-weight: bold; color: #00d2ff; margin-right: 8px; }
-.toolbar input { padding: 6px 10px; background: #0a0c1b; border: 1px solid #333; color: #fff; border-radius: 4px; font-family: inherit; min-width: 150px; }
+.toolbar input[type="text"] { padding: 6px 10px; background: #0a0c1b; border: 1px solid #333; color: #fff; border-radius: 4px; font-family: inherit; min-width: 150px; }
 .toolbar input.valid { border-color: #4caf50; }
 .toolbar input.invalid { border-color: #e94560; }
+.toolbar select { padding: 6px 10px; background: #0a0c1b; border: 1px solid #333; color: #fff; border-radius: 4px; font-family: inherit; }
 
-button.btn { padding: 8px 16px; background: #00d2ff; color: #000; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-family: inherit; font-size: 0.9rem; touch-action: manipulation; text-decoration: none; display: inline-block; }
+button.btn { padding: 8px 16px; background: #00d2ff; color: #000; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-family: inherit; font-size: 0.9rem; text-decoration: none; display: inline-block; }
 button.btn:hover { background: #00a2c7; }
 button.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 button.btn-secondary { background: #444; color: #fff; }
 button.btn-secondary:hover { background: #555; }
 button.btn-danger { background: #e94560; color: #fff; }
 button.btn-danger:hover { background: #c73050; }
+button.btn-sm { padding: 4px 10px; font-size: 0.75rem; }
 
 .mode-tabs { display: flex; background: #0a0c1b; border-bottom: 1px solid #2a2a4a; flex-shrink: 0; }
 .mode-tabs button { flex: 1; padding: 10px; background: transparent; color: #888; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-family: inherit; font-size: 0.9rem; }
 .mode-tabs button.active { color: #00d2ff; border-bottom-color: #00d2ff; background: rgba(0,210,255,0.05); }
-.mode-tabs button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .editor-area { flex: 1; display: flex; overflow: hidden; min-height: 0; }
 
@@ -49,78 +48,74 @@ button.btn-danger:hover { background: #c73050; }
 .manual-preview { flex: 1; min-width: 0; background: #fff; border-left: 1px solid #2a2a4a; }
 .manual-preview iframe { width: 100%; height: 100%; border: none; display: block; }
 
-/* ===== GUIモード ===== */
-.gui-container { display: flex; width: 100%; height: 100%; }
-.gui-palette { width: 180px; flex-shrink: 0; background: #16213e; border-right: 1px solid #2a2a4a; overflow-y: auto; padding: 12px; }
-.gui-palette h4 { margin: 0 0 12px; font-size: 0.85rem; color: #00d2ff; }
-.gui-palette button { display: block; width: 100%; margin-bottom: 8px; padding: 10px; background: #0a0c1b; border: 1px solid #333; border-radius: 6px; color: #e0e0e0; font-family: inherit; font-size: 0.85rem; cursor: pointer; text-align: left; transition: 0.15s; }
-.gui-palette button:hover { border-color: #00d2ff; background: rgba(0,210,255,0.08); color: #00d2ff; }
-.gui-palette button .icon { margin-right: 6px; }
+/* ===== GUIモード（ブロックベース） ===== */
+.gui-container { display: flex; flex-direction: column; width: 100%; height: 100%; }
 
-.gui-canvas-wrapper { flex: 1; min-width: 0; overflow: auto; background: #2a2a4a; padding: 24px; display: flex; justify-content: center; align-items: flex-start; }
-.gui-canvas { position: relative; width: 100%; max-width: 1000px; min-height: 800px; background: #fff; border-radius: 4px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); overflow: hidden; }
+/* ページタブ */
+.page-tabs { display: flex; align-items: center; gap: 4px; background: #16213e; border-bottom: 1px solid #2a2a4a; padding: 8px 12px; overflow-x: auto; flex-shrink: 0; }
+.page-tab { padding: 6px 14px; background: transparent; border: 1px solid transparent; border-radius: 4px; color: #aaa; font-family: inherit; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
+.page-tab:hover { background: rgba(255,255,255,0.05); }
+.page-tab.active { background: rgba(0,210,255,0.15); border-color: #00d2ff; color: #00d2ff; font-weight: bold; }
+.page-tab-del { color: #e94560; margin-left: 6px; font-size: 0.9rem; opacity: 0.6; }
+.page-tab-del:hover { opacity: 1; }
 
-.gui-component { position: absolute; box-sizing: border-box; overflow: hidden; cursor: grab; }
-.gui-component:active { cursor: grabbing; }
-.gui-component[contenteditable="true"]:focus { outline: 2px solid #00d2ff; outline-offset: -2px; }
-.gui-component img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.gui-component.selected { outline: 2px solid #00d2ff; outline-offset: -2px; }
+/* エディタ本体 */
+.gui-main { flex: 1; display: flex; overflow: hidden; min-height: 0; }
 
-.gui-properties { width: 220px; flex-shrink: 0; background: #16213e; border-left: 1px solid #2a2a4a; overflow-y: auto; padding: 12px; }
-.gui-properties h4 { margin: 0 0 12px; font-size: 0.85rem; color: #00d2ff; }
-.gui-properties .form-group { margin-bottom: 12px; }
-.gui-properties label { display: block; font-size: 0.75rem; color: #aaa; margin-bottom: 4px; }
-.gui-properties input[type="number"], .gui-properties input[type="text"], .gui-properties select { width: 100%; padding: 6px 8px; background: #0a0c1b; border: 1px solid #333; color: #fff; border-radius: 4px; font-family: inherit; font-size: 0.85rem; }
-.gui-properties input[type="color"] { width: 100%; height: 32px; border: 1px solid #333; border-radius: 4px; background: #0a0c1b; cursor: pointer; }
-.gui-properties .no-selection { color: #666; font-size: 0.85rem; text-align: center; padding: 20px 0; }
+/* 左パレット */
+.section-palette { width: 200px; flex-shrink: 0; background: #16213e; border-right: 1px solid #2a2a4a; overflow-y: auto; padding: 16px 12px; }
+.section-palette h4 { margin: 0 0 14px; font-size: 0.75rem; color: #00d2ff; letter-spacing: 1px; text-transform: uppercase; font-weight: 600; }
+.section-palette button { display: flex; align-items: center; gap: 10px; width: 100%; margin-bottom: 6px; padding: 10px 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; color: #ccc; font-family: inherit; font-size: 0.82rem; cursor: pointer; text-align: left; transition: all 0.15s; }
+.section-palette button:hover { background: rgba(0,210,255,0.1); border-color: rgba(0,210,255,0.4); color: #00d2ff; transform: translateX(2px); }
+.section-palette button .icon { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: rgba(0,210,255,0.08); border-radius: 6px; font-size: 0.8rem; flex-shrink: 0; }
 
-.mobile-tabs { display: none; background: #0a0c1b; border-bottom: 1px solid #2a2a4a; flex-shrink: 0; }
-.mobile-tabs button { flex: 1; padding: 10px; background: transparent; color: #888; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-family: inherit; }
-.mobile-tabs button.active { color: #00d2ff; border-bottom-color: #00d2ff; }
+/* 中央キャンバス */
+.canvas-wrapper { flex: 1; min-width: 0; overflow-y: auto; background: #0f0f1a; padding: 24px; }
+.canvas-frame { max-width: 900px; margin: 0 auto; background: #fff; border-radius: 4px; box-shadow: 0 12px 48px rgba(0,0,0,0.5); overflow: hidden; }
+.canvas-frame iframe { width: 100%; border: none; display: block; background: #fff; }
 
-@media (max-width: 900px) {
-  .gui-palette { width: 120px; padding: 8px; }
-  .gui-palette button { font-size: 0.75rem; padding: 8px; }
-  .gui-properties { width: 180px; padding: 8px; }
-}
-@media (max-width: 768px) {
-  .toolbar { padding: 6px 8px; gap: 6px; }
-  .toolbar input { min-width: 100px; }
-  .toolbar .btn { padding: 6px 10px; font-size: 0.8rem; }
-  .manual-container { flex-direction: column; }
-  .manual-preview { border-left: none; border-top: 1px solid #2a2a4a; }
-  .manual-input.hidden-on-mobile, .manual-preview.hidden-on-mobile { display: none; }
-  .mobile-tabs { display: flex; }
-  .gui-container { flex-direction: column; }
-  .gui-palette { width: 100%; display: flex; overflow-x: auto; gap: 6px; padding: 8px; border-right: none; border-bottom: 1px solid #2a2a4a; }
-  .gui-palette h4 { display: none; }
-  .gui-palette button { width: auto; white-space: nowrap; margin-bottom: 0; }
-  .gui-properties { width: 100%; border-left: none; border-top: 1px solid #2a2a4a; max-height: 200px; }
-}
+/* セクションリスト（エディタ用） */
+.section-list { display: flex; flex-direction: column; gap: 8px; max-width: 900px; margin: 0 auto; }
+.section-block { position: relative; background: #1a1a2e; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 12px; cursor: pointer; transition: border-color 0.15s; }
+.section-block:hover { border-color: rgba(0,210,255,0.5); }
+.section-block.selected { border-color: #00d2ff; box-shadow: 0 0 0 2px rgba(0,210,255,0.2); }
+.section-block-label { font-size: 0.7rem; color: #00d2ff; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+.section-actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; }
+.section-block:hover .section-actions { opacity: 1; }
+.section-actions button { background: rgba(255,255,255,0.1); border: none; color: #fff; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; }
+.section-actions button:hover { background: #00d2ff; color: #000; }
+.section-preview { color: #888; font-size: 0.75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+/* 右プロパティ */
+.properties-panel { width: 280px; flex-shrink: 0; background: #16213e; border-left: 1px solid #2a2a4a; overflow-y: auto; padding: 16px 12px; }
+.properties-panel h4 { margin: 0 0 14px; font-size: 0.75rem; color: #00d2ff; letter-spacing: 1px; text-transform: uppercase; font-weight: 600; }
+.prop-group { margin-bottom: 14px; }
+.prop-group label { display: block; font-size: 0.7rem; color: #888; margin-bottom: 5px; letter-spacing: 0.5px; }
+.prop-group input[type="text"], .prop-group input[type="number"], .prop-group textarea, .prop-group select { width: 100%; padding: 8px 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #fff; border-radius: 6px; font-family: inherit; font-size: 0.85rem; }
+.prop-group input:focus, .prop-group textarea:focus, .prop-group select:focus { border-color: #00d2ff; outline: none; }
+.prop-group textarea { resize: vertical; min-height: 60px; }
+.prop-list-item { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; padding: 10px; margin-bottom: 8px; }
+.prop-list-item .prop-list-del { float: right; color: #e94560; cursor: pointer; font-size: 0.85rem; }
+.prop-empty { color: #555; font-size: 0.8rem; text-align: center; padding: 30px 0; line-height: 1.6; }
+
+/* モーダル */
 .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
 .modal.active { display: flex; }
-.modal-content { background: #16213e; border: 1px solid #00d2ff; border-radius: 8px; padding: 24px; max-width: 600px; width: 100%; max-height: 85vh; overflow-y: auto; }
+.modal-content { background: #16213e; border: 1px solid #00d2ff; border-radius: 8px; padding: 24px; max-width: 700px; width: 100%; max-height: 85vh; overflow-y: auto; }
 .modal-content h3 { margin: 0 0 16px; color: #00d2ff; }
 
-.drop-zone { border: 2px dashed #444; border-radius: 8px; padding: 40px 20px; text-align: center; color: #888; cursor: pointer; transition: all 0.2s; }
-.drop-zone:hover, .drop-zone.dragover { border-color: #00d2ff; background: rgba(0,210,255,0.05); color: #00d2ff; }
-.drop-zone input[type=file] { display: none; }
-.upload-list { margin-top: 16px; }
-.upload-item { display: flex; align-items: center; gap: 8px; padding: 8px; background: #0a0c1b; border-radius: 4px; margin-bottom: 8px; font-size: 0.85rem; }
-.upload-item .status { color: #888; }
-.upload-item.done .status { color: #4caf50; }
-.upload-item.error .status { color: #e94560; }
+.theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+.theme-card { border: 2px solid rgba(255,255,255,0.08); border-radius: 8px; overflow: hidden; cursor: pointer; transition: all 0.2s; }
+.theme-card:hover { border-color: #00d2ff; transform: translateY(-2px); }
+.theme-card.selected { border-color: #00d2ff; }
+.theme-thumb { height: 90px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.5rem; letter-spacing: 2px; }
+.theme-meta { padding: 10px 12px; background: rgba(0,0,0,0.3); }
+.theme-meta strong { display: block; color: #00d2ff; font-size: 0.9rem; margin-bottom: 2px; }
+.theme-meta span { font-size: 0.72rem; color: #999; }
 
 #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: #16213e; color: #fff; padding: 12px 24px; border-radius: 8px; border: 1px solid #00d2ff; z-index: 2000; transition: transform 0.3s; max-width: 90%; font-size: 0.9rem; }
 #toast.show { transform: translateX(-50%) translateY(0); }
 #toast.error { border-color: #e94560; }
-
-.presets-list { display: grid; gap: 12px; }
-.preset-item { padding: 16px; background: #0a0c1b; border: 1px solid #333; border-radius: 6px; cursor: pointer; transition: 0.2s; }
-.preset-item:hover { border-color: #00d2ff; background: rgba(0,210,255,0.05); }
-.preset-item strong { color: #00d2ff; display: block; margin-bottom: 4px; }
-.preset-item span { font-size: 0.85rem; color: #aaa; }
 
 .site-info { background: #16213e; padding: 8px 12px; font-size: 0.8rem; border-bottom: 1px solid #2a2a4a; color: #aaa; flex-shrink: 0; }
 .site-info a { color: #00d2ff; }
@@ -132,6 +127,11 @@ button.btn-danger:hover { background: #c73050; }
 .loader-overlay.active { display: flex; }
 .loader-overlay .spinner { width: 60px; height: 60px; border: 4px solid #333; border-top-color: #00d2ff; border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 900px) {
+  .section-palette { width: 140px; padding: 8px; }
+  .properties-panel { width: 200px; padding: 8px; }
+}
 </style>
 </head>
 <body>
@@ -152,18 +152,10 @@ button.btn-danger:hover { background: #c73050; }
 <div id="not-maker-screen" class="screen">
   <div class="not-maker-box">
     <h2>メーカー登録が必要です</h2>
-    <p style="color:#aaa; margin-bottom:20px;">
-      メーカーページを作成するには、まず架空車街でメーカー登録を行ってください。
-    </p>
-    <a href="https://cpmcarshop.github.io/" class="btn" style="margin-bottom:10px; display:inline-block;">
-      架空車街で登録する
-    </a>
-    <button class="btn btn-secondary" id="retry-maker-check" style="width:100%; margin-bottom:10px;">
-      再チェック
-    </button>
-    <button class="btn btn-secondary" id="logout-from-notmaker" style="width:100%;">
-      ログアウト
-    </button>
+    <p style="color:#aaa; margin-bottom:20px;">メーカーページを作成するには、まず架空車街でメーカー登録を行ってください。</p>
+    <a href="https://cpmcarshop.github.io/" class="btn" style="margin-bottom:10px; display:inline-block;">架空車街で登録する</a>
+    <button class="btn btn-secondary" id="retry-maker-check" style="width:100%; margin-bottom:10px;">再チェック</button>
+    <button class="btn btn-secondary" id="logout-from-notmaker" style="width:100%;">ログアウト</button>
     <p id="debug-uid" style="color:#666; font-size:0.7rem; margin-top:20px; word-break:break-all; white-space:pre-wrap; text-align:left;"></p>
   </div>
 </div>
@@ -174,7 +166,8 @@ button.btn-danger:hover { background: #c73050; }
     <span class="brand">メーカーページ</span>
     <input type="text" id="slug-input" placeholder="ページ名" maxlength="64">
     <button class="btn btn-secondary" id="slug-check-btn">確認</button>
-    <button class="btn btn-secondary" id="preset-btn">📄 プリセット</button>
+    <button class="btn btn-secondary" id="theme-btn">🎨 テーマ</button>
+    <button class="btn" id="preview-btn">👁 プレビュー</button>
     <button class="btn" id="publish-btn">公開</button>
     <button class="btn btn-danger" id="delete-btn" style="display:none;">削除</button>
     <button class="btn btn-secondary" id="logout-btn" style="margin-left:auto;">ログアウト</button>
@@ -182,76 +175,77 @@ button.btn-danger:hover { background: #c73050; }
   <div id="site-info-bar" class="site-info" style="display:none;"></div>
 
   <div class="mode-tabs" id="mode-tabs">
-    <button data-mode="manual" class="active">手動（HTML）</button>
-    <button data-mode="gui">GUI（簡単モード）</button>
-  </div>
-
-  <div class="mobile-tabs" id="mobile-tabs">
-    <button data-pane="editor" class="active">✏️ 編集</button>
-    <button data-pane="preview">👁 プレビュー</button>
+    <button data-mode="manual">手動（HTML）</button>
+    <button data-mode="gui" class="active">GUI（簡単モード）</button>
   </div>
 
   <div class="editor-area">
     <!-- 手動モード -->
-    <div id="manual-mode-container" class="manual-container">
-      <div class="manual-input" id="pane-editor">
+    <div id="manual-mode-container" class="manual-container" style="display:none;">
+      <div class="manual-input">
         <textarea id="html-editor" spellcheck="false"></textarea>
       </div>
-      <div class="manual-preview" id="pane-preview">
+      <div class="manual-preview">
         <iframe id="preview-frame" sandbox="allow-scripts allow-forms allow-popups"></iframe>
       </div>
     </div>
 
     <!-- GUIモード -->
-    <div id="gui-mode-container" class="gui-container" style="display:none;">
-      <div class="gui-palette">
-        <h4>コンポーネント追加</h4>
-        <button data-add="heading"><span class="icon">H</span>見出し</button>
-        <button data-add="text"><span class="icon">T</span>テキスト</button>
-        <button data-add="image"><span class="icon">🖼</span>画像</button>
-        <button data-add="button"><span class="icon">🔘</span>ボタン</button>
-        <button data-add="divider"><span class="icon">―</span>区切り線</button>
-        <button data-add="spacer"><span class="icon">␣</span>スペーサー</button>
-      </div>
-      <div class="gui-canvas-wrapper" id="gui-canvas-wrapper">
-        <div class="gui-canvas" id="gui-canvas"></div>
-      </div>
-      <div class="gui-properties" id="gui-properties">
-        <h4>プロパティ</h4>
-        <div id="gui-properties-content">
-          <div class="no-selection">コンポーネントを選択してください</div>
+    <div id="gui-mode-container" class="gui-container">
+      <!-- ページタブ -->
+      <div class="page-tabs" id="page-tabs"></div>
+
+      <div class="gui-main">
+        <!-- 左パレット -->
+        <div class="section-palette">
+          <h4>セクション追加</h4>
+          <button data-add="hero"><span class="icon">★</span>ヒーロー</button>
+          <button data-add="text"><span class="icon">T</span>テキスト</button>
+          <button data-add="image"><span class="icon">🖼</span>画像</button>
+          <button data-add="cards"><span class="icon">▦</span>カード</button>
+          <button data-add="gallery"><span class="icon">▩</span>ギャラリー</button>
+          <button data-add="timeline"><span class="icon">⏱</span>タイムライン</button>
+          <button data-add="contact"><span class="icon">✉</span>コンタクト</button>
+          <button data-add="spacer"><span class="icon">␣</span>余白</button>
+        </div>
+
+        <!-- 中央キャンバス -->
+        <div class="canvas-wrapper">
+          <div class="section-list" id="section-list"></div>
+        </div>
+
+        <!-- 右プロパティ -->
+        <div class="properties-panel">
+          <h4>プロパティ</h4>
+          <div id="properties-content">
+            <div class="prop-empty">セクションを選択してください</div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ===== 画像アップロードモーダル ===== -->
-<div id="image-modal" class="modal">
+<!-- ===== テーマ選択モーダル ===== -->
+<div id="theme-modal" class="modal">
   <div class="modal-content">
-    <h3>画像をアップロード</h3>
-    <p style="color:#888; font-size:0.85rem;">1枚10MBまで。GitHubリポジトリに保存されます。</p>
-    <div class="drop-zone" id="drop-zone">
-      <input type="file" id="image-input" accept="image/*" multiple>
-      <div style="font-size:2rem; margin-bottom:8px;">🖼</div>
-      <div>クリックまたはドロップで画像を選択</div>
-    </div>
-    <div class="upload-list" id="upload-list"></div>
+    <h3>🎨 テーマを選択</h3>
+    <p style="color:#888; font-size:0.85rem; margin-bottom:16px;">⚠️ 選択すると現在のページ構成が置き換わります。</p>
+    <div class="theme-grid" id="theme-grid"></div>
     <div style="text-align:right; margin-top:16px;">
-      <button class="btn btn-secondary" id="image-modal-close">閉じる</button>
+      <button class="btn btn-secondary" id="theme-modal-close">キャンセル</button>
     </div>
   </div>
 </div>
 
-<!-- ===== プリセットモーダル ===== -->
-<div id="preset-modal" class="modal">
-  <div class="modal-content">
-    <h3>プリセット</h3>
-    <p style="color:#888; font-size:0.85rem; margin-bottom:16px;">⚠️ 選択すると現在の内容が置き換わります。</p>
-    <div class="presets-list" id="presets-list"></div>
-    <div style="text-align:right; margin-top:16px;">
-      <button class="btn btn-secondary" id="preset-modal-close">キャンセル</button>
+<!-- ===== プレビューモーダル ===== -->
+<div id="preview-modal" class="modal">
+  <div class="modal-content" style="max-width:1000px; padding:0; overflow:hidden;">
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:#0a0c1b; border-bottom:1px solid #2a2a4a;">
+      <strong style="color:#00d2ff;">プレビュー</strong>
+      <button class="btn btn-secondary btn-sm" id="preview-modal-close">閉じる</button>
     </div>
+    <iframe id="preview-iframe" style="width:100%; height:75vh; border:none; background:#fff;"></iframe>
   </div>
 </div>
 
@@ -262,18 +256,20 @@ button.btn-danger:hover { background: #c73050; }
 // 設定
 // ============================================================
 const WORKER_URL = 'https://makerpage.paapaapaa810.workers.dev';
-const STORAGE_KEY = 'makerpage_draft';
-const GUI_STORAGE_KEY = 'makerpage_gui_draft';
+const STORAGE_KEY = 'makerpage_site_v2';
 const SAVE_DEBOUNCE = 1500;
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCffFYNOEcrGu2GKgSiE6q6KgGkCtxJEFw",
+  apiKey: "AIzaSyCffFFYNOEcrGu2GKgSiE6q6KgGkCtxJEFw",
   authDomain: "kakuusha-gai.firebaseapp.com",
   projectId: "kakuusha-gai",
   storageBucket: "kakuusha-gai.firebasestorage.app",
   messagingSenderId: "460103021741",
   appId: "1:460103021741:web:40ed966e261ed657e80224"
 };
+
+// Firebase 設定の typo 対策（正しい値に上書き）
+firebaseConfig.apiKey = "AIzaSyCffFYNOEcrGu2GKgSiE6q6KgGkCtxJEFw";
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
@@ -293,27 +289,29 @@ const state = {
   maker: null,
   site: null,
   slug: '',
-  mode: 'manual',          // 'manual' | 'gui'
-  html: '',                // 手動モードのHTML
-  guiComponents: [],       // GUIモードのコンポーネント配列
-  guiBackground: '#ffffff',// GUIモードの背景色
+  mode: 'gui', // 'manual' | 'gui'
+  html: '',
+  // GUI用
+  themeId: 'racing',
+  pages: [],       // [{ id, name, sections: [...] }]
+  currentPageId: null,
+  selectedSectionId: null,
   isDirty: false,
-  selectedId: null,
 };
 
-// ============================================================
-// ユーティリティ
-// ============================================================
 const $ = (id) => document.getElementById(id);
+const uuid = () => 'id_' + Math.random().toString(36).slice(2, 10);
 
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+}
 function showScreen(name) {
   document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-  const target = $(name + '-screen');
-  if (target) target.classList.add('active');
+  const t = $(name + '-screen');
+  if (t) t.classList.add('active');
 }
 function showLoader() { $('loader').classList.add('active'); }
 function hideLoader() { $('loader').classList.remove('active'); }
-
 let toastTimer = null;
 function toast(msg, isError = false) {
   const el = $('toast');
@@ -322,16 +320,10 @@ function toast(msg, isError = false) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
 }
-function escapeHtml(s) {
-  return String(s || '').replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
-}
 function setDebug(msg) {
-  const el = document.getElementById('debug-uid');
+  const el = $('debug-uid');
   if (el) el.textContent = msg;
   console.log('[debug]', msg);
-}
-function uuid() {
-  return 'c_' + Math.random().toString(36).slice(2, 10);
 }
 
 // ============================================================
@@ -351,152 +343,662 @@ async function api(action, payload = {}) {
 }
 
 // ============================================================
-// 手動モード用プリセット
+// テーマ定義
 // ============================================================
-const PRESETS = [
-  { id:'blank', name:'ブランク', desc:'まっさらな HTML5 テンプレート', html:`<!DOCTYPE html>
+const THEMES = {
+  racing: {
+    name: 'レーシング',
+    desc: '漆黒×レッド。スポーティで攻める',
+    thumbBg: 'linear-gradient(135deg, #0a0a0c 0%, #1a1a22 100%)',
+    thumbColor: '#ff1e27',
+    vars: {
+      bg: '#0a0a0c', card: '#141419', primary: '#ff1e27', primaryHover: '#e00009',
+      text: '#ffffff', textGray: '#a0a0ab', border: '#22222a',
+      fontEn: "'Orbitron', sans-serif", fontMain: "'Noto Sans JP', sans-serif",
+      heroBg: 'linear-gradient(135deg, rgba(10,10,12,0.7), rgba(10,10,12,0.95))',
+      btnStyle: 'clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); border-radius:0;',
+    },
+    defaultPages: () => [
+      { id: 'home', name: 'ホーム', sections: [
+        { type: 'hero', props: { title: 'YOUR BRAND', subtitle: 'あなたのブランドのキャッチコピーをここに。', btnText: 'VIEW WORKS', btnHref: '#', bgImage: '' } },
+        { type: 'text', props: { title: 'ABOUT US', body: 'ここに会社概要やブランドの紹介文を書きます。あなたのメーカーの魅力を伝えましょう。' } },
+        { type: 'cards', props: { title: 'PROJECTS', items: [
+          { tag: 'SERVICE', title: 'サービス1', desc: 'サービスの説明をここに書きます。', href: '#' },
+          { tag: 'SERVICE', title: 'サービス2', desc: 'サービスの説明をここに書きます。', href: '#' },
+        ] } },
+      ] },
+      { id: 'about', name: 'アバウト', sections: [
+        { type: 'text', props: { title: 'ABOUT', body: '私たちについての詳細をここに書きます。' } },
+      ] },
+      { id: 'contact', name: 'コンタクト', sections: [
+        { type: 'contact', props: { title: 'CONTACT', body: 'お問い合わせはこちらから。', btnText: 'Twitter DM', btnHref: '#' } },
+      ] },
+    ]
+  },
+  minimal: {
+    name: 'ミニマル',
+    desc: '白×黒。余白美と洗練',
+    thumbBg: '#fafafa',
+    thumbColor: '#111111',
+    vars: {
+      bg: '#fafafa', card: '#ffffff', primary: '#111111', primaryHover: '#333333',
+      text: '#111111', textGray: '#666666', border: '#e5e5e5',
+      fontEn: "'Inter', sans-serif", fontMain: "'Noto Sans JP', sans-serif",
+      heroBg: 'linear-gradient(135deg, rgba(250,250,250,0.9), rgba(250,250,250,0.98))',
+      btnStyle: 'border-radius:0;',
+    },
+    defaultPages: () => [
+      { id: 'home', name: 'ホーム', sections: [
+        { type: 'hero', props: { title: 'Less is More.', subtitle: '不要なものを削ぎ落とし、本質だけを残す。', btnText: '詳しく見る', btnHref: '#', bgImage: '' } },
+        { type: 'text', props: { title: 'PHILOSOPHY', body: 'シンプルであることは、最も洗練された美しさです。' } },
+        { type: 'cards', props: { title: 'WORKS', items: [
+          { tag: '01', title: 'プロジェクト1', desc: '説明文', href: '#' },
+        ] } },
+      ] },
+    ]
+  },
+  luxury: {
+    name: 'ラグジュアリー',
+    desc: '漆黒×ゴールド。高級感',
+    thumbBg: 'linear-gradient(135deg, #0a0a0a 0%, #1a1510 100%)',
+    thumbColor: '#d4af37',
+    vars: {
+      bg: '#0a0a0a', card: '#141210', primary: '#d4af37', primaryHover: '#b8962e',
+      text: '#ffffff', textGray: '#aaaaaa', border: '#2a2418',
+      fontEn: "'Playfair Display', serif", fontMain: "'Noto Serif JP', serif",
+      heroBg: 'linear-gradient(135deg, rgba(10,10,10,0.8), rgba(10,10,10,0.95))',
+      btnStyle: 'border-radius:0; border:1px solid #d4af37;',
+    },
+    defaultPages: () => [
+      { id: 'home', name: 'ホーム', sections: [
+        { type: 'hero', props: { title: 'EXCLUSIVE', subtitle: '特別な体験を、特別なあなたへ', btnText: 'コレクションを見る', btnHref: '#', bgImage: '' } },
+        { type: 'text', props: { title: 'MAISON', body: '選ばれたものだけが手にできる、唯一無二の価値。妥協なき品質と、時代を超える美しさを追求します。' } },
+      ] },
+    ]
+  },
+  gradient: {
+    name: 'グラデーション',
+    desc: '流れる色彩。没入感',
+    thumbBg: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+    thumbColor: '#ffffff',
+    vars: {
+      bg: '#1a1a2e', card: 'rgba(255,255,255,0.1)', primary: '#f093fb', primaryHover: '#e07ce8',
+      text: '#ffffff', textGray: 'rgba(255,255,255,0.8)', border: 'rgba(255,255,255,0.15)',
+      fontEn: "'Inter', sans-serif", fontMain: "'Noto Sans JP', sans-serif",
+      heroBg: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+      btnStyle: 'border-radius:30px;',
+    },
+    defaultPages: () => [
+      { id: 'home', name: 'ホーム', sections: [
+        { type: 'hero', props: { title: 'FLOW', subtitle: '流れる色彩に身を委ねる。', btnText: '体験する', btnHref: '#', bgImage: '' } },
+        { type: 'text', props: { title: 'EXPERIENCE', body: '色と光が溶け合う、没入型のデジタル体験。あなたのブランドに、新しい次元を。' } },
+      ] },
+    ]
+  },
+  neobrutalism: {
+    name: 'ネオブルータリズム',
+    desc: '太線・ビビッド・生のグリッド',
+    thumbBg: '#f0f0f0',
+    thumbColor: '#000000',
+    vars: {
+      bg: '#f0f0f0', card: '#ffffff', primary: '#ff4757', primaryHover: '#e03040',
+      text: '#000000', textGray: '#333333', border: '#000000',
+      fontEn: "'Inter', sans-serif", fontMain: "'Noto Sans JP', sans-serif",
+      heroBg: 'linear-gradient(135deg, #f0f0f0, #e0e0e0)',
+      btnStyle: 'border-radius:0; border:3px solid #000;',
+    },
+    defaultPages: () => [
+      { id: 'home', name: 'ホーム', sections: [
+        { type: 'hero', props: { title: 'BOLD.', subtitle: '常識を壊せ。新しい価値を創れ。', btnText: 'START NOW', btnHref: '#', bgImage: '' } },
+        { type: 'cards', props: { title: 'WHAT WE DO', items: [
+          { tag: '01', title: 'デザイン', desc: '説明', href: '#' },
+          { tag: '02', title: '開発', desc: '説明', href: '#' },
+        ] } },
+      ] },
+    ]
+  },
+  natural: {
+    name: 'ナチュラル',
+    desc: 'アースカラー。温かみ',
+    thumbBg: '#f5f0e8',
+    thumbColor: '#8a7e6e',
+    vars: {
+      bg: '#f5f0e8', card: '#ffffff', primary: '#8a7e6e', primaryHover: '#6e6252',
+      text: '#3d3229', textGray: '#8a7e6e', border: '#e0d8cc',
+      fontEn: "'Playfair Display', serif", fontMain: "'Noto Serif JP', serif",
+      heroBg: 'linear-gradient(135deg, #f5f0e8, #e8dfd0)',
+      btnStyle: 'border-radius:26px;',
+    },
+    defaultPages: () => [
+      { id: 'home', name: 'ホーム', sections: [
+        { type: 'hero', props: { title: 'Organic Life', subtitle: '自然と共に、暮らす。', btnText: '私たちについて', btnHref: '#', bgImage: '' } },
+        { type: 'text', props: { title: 'OUR STORY', body: '土の香り、木の温もり、風のささやき。自然が教えてくれる、本当の豊かさを大切に。' } },
+      ] },
+    ]
+  },
+  tech: {
+    name: 'テック',
+    desc: 'ダーク×ネオン。スタートアップ',
+    thumbBg: '#0d1117',
+    thumbColor: '#58a6ff',
+    vars: {
+      bg: '#0d1117', card: '#161b22', primary: '#58a6ff', primaryHover: '#4090e0',
+      text: '#c9d1d9', textGray: '#8b949e', border: '#30363d',
+      fontEn: "'Inter', sans-serif", fontMain: "'Noto Sans JP', sans-serif",
+      heroBg: 'linear-gradient(135deg, #0d1117, #161b22)',
+      btnStyle: 'border-radius:6px;',
+    },
+    defaultPages: () => [
+      { id: 'home', name: 'ホーム', sections: [
+        { type: 'hero', props: { title: 'Build the Future', subtitle: '次世代のプロダクトで、世界を変える。', btnText: 'Get Started', btnHref: '#', bgImage: '' } },
+        { type: 'text', props: { title: '01 / SPEED', body: '圧倒的な処理速度で、ユーザー体験を再定義。' } },
+      ] },
+    ]
+  },
+  editorial: {
+    name: 'エディトリアル',
+    desc: '雑誌風。セリフ体と大胆な余白',
+    thumbBg: '#ffffff',
+    thumbColor: '#111111',
+    vars: {
+      bg: '#ffffff', card: '#fafafa', primary: '#111111', primaryHover: '#333333',
+      text: '#111111', textGray: '#666666', border: '#dddddd',
+      fontEn: "'Playfair Display', serif", fontMain: "'Noto Serif JP', serif",
+      heroBg: 'linear-gradient(135deg, #ffffff, #f5f5f5)',
+      btnStyle: 'border-radius:0; border-bottom:2px solid #111;',
+    },
+    defaultPages: () => [
+      { id: 'home', name: 'ホーム', sections: [
+        { type: 'hero', props: { title: 'THE JOURNAL', subtitle: 'Issue No. 01 — 2025', btnText: 'Read More', btnHref: '#', bgImage: '' } },
+        { type: 'text', props: { title: 'The Art of Minimalism', body: 'ミニマリズムは、単なる様式ではない。それは、本質を見極めるための思考法である。' } },
+      ] },
+    ]
+  },
+};
+
+// ============================================================
+// セクションのレンダリング（エディタプレビュー用）
+// ============================================================
+function renderSectionPreviewHtml(section, themeId) {
+  const t = THEMES[themeId] || THEMES.racing;
+  const v = t.vars;
+  const p = section.props || {};
+  let inner = '';
+
+  if (section.type === 'hero') {
+    inner = `<div style="padding:80px 20px;text-align:center;background:${p.bgImage ? `linear-gradient(135deg,rgba(0,0,0,0.6),rgba(0,0,0,0.85)),url('${escapeHtml(p.bgImage)}') center/cover` : v.heroBg};">
+      <h1 style="font-family:${v.fontEn};font-size:2.5rem;font-weight:900;margin:0 0 12px;color:${v.text};letter-spacing:2px;">${escapeHtml(p.title)}</h1>
+      <p style="color:${v.textGray};margin:0 0 24px;font-size:1rem;">${escapeHtml(p.subtitle)}</p>
+      <a href="${escapeHtml(p.btnHref || '#')}" style="display:inline-block;padding:12px 28px;background:${v.primary};color:#fff;font-weight:700;font-size:0.9rem;${v.btnStyle}">${escapeHtml(p.btnText || 'VIEW')}</a>
+    </div>`;
+  } else if (section.type === 'text') {
+    inner = `<div style="padding:40px 30px;background:${v.bg};">
+      <h2 style="font-family:${v.fontEn};font-size:1.6rem;font-weight:900;margin:0 0 16px;color:${v.text};border-left:4px solid ${v.primary};padding-left:12px;">${escapeHtml(p.title)}</h2>
+      <p style="color:${v.textGray};line-height:1.8;margin:0;white-space:pre-wrap;">${escapeHtml(p.body)}</p>
+    </div>`;
+  } else if (section.type === 'image') {
+    inner = `<div style="padding:20px;background:${v.bg};text-align:center;">
+      ${p.src ? `<img src="${escapeHtml(p.src)}" style="max-width:100%;border-radius:8px;">` : `<div style="padding:40px;border:2px dashed ${v.border};color:${v.textGray};border-radius:8px;">画像を設定してください</div>`}
+      ${p.caption ? `<p style="color:${v.textGray};font-size:0.85rem;margin-top:10px;">${escapeHtml(p.caption)}</p>` : ''}
+    </div>`;
+  } else if (section.type === 'cards') {
+    const items = p.items || [];
+    inner = `<div style="padding:40px 30px;background:${v.bg};">
+      <h2 style="font-family:${v.fontEn};font-size:1.6rem;font-weight:900;margin:0 0 24px;color:${v.text};border-left:4px solid ${v.primary};padding-left:12px;">${escapeHtml(p.title)}</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;">
+        ${items.map(it => `<div style="background:${v.card};border:1px solid ${v.border};border-radius:8px;padding:20px;">
+          <span style="font-family:${v.fontEn};font-size:0.7rem;color:${v.primary};font-weight:700;letter-spacing:1px;">${escapeHtml(it.tag)}</span>
+          <h3 style="margin:8px 0;color:${v.text};font-size:1.1rem;">${escapeHtml(it.title)}</h3>
+          <p style="color:${v.textGray};font-size:0.85rem;margin:0 0 12px;">${escapeHtml(it.desc)}</p>
+          <a href="${escapeHtml(it.href || '#')}" style="color:${v.primary};font-size:0.8rem;font-weight:bold;">詳しく見る →</a>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  } else if (section.type === 'gallery') {
+    const imgs = p.images || [];
+    inner = `<div style="padding:40px 30px;background:${v.bg};">
+      <h2 style="font-family:${v.fontEn};font-size:1.6rem;font-weight:900;margin:0 0 24px;color:${v.text};border-left:4px solid ${v.primary};padding-left:12px;">${escapeHtml(p.title)}</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;">
+        ${imgs.length ? imgs.map(src => `<img src="${escapeHtml(src)}" style="width:100%;height:120px;object-fit:cover;border-radius:6px;">`).join('') : `<div style="padding:30px;border:2px dashed ${v.border};color:${v.textGray};border-radius:8px;text-align:center;">画像を追加してください</div>`}
+      </div>
+    </div>`;
+  } else if (section.type === 'timeline') {
+    const items = p.items || [];
+    inner = `<div style="padding:40px 30px;background:${v.bg};">
+      <h2 style="font-family:${v.fontEn};font-size:1.6rem;font-weight:900;margin:0 0 24px;color:${v.text};border-left:4px solid ${v.primary};padding-left:12px;">${escapeHtml(p.title)}</h2>
+      <div style="border-left:2px solid ${v.border};padding-left:20px;">
+        ${items.map(it => `<div style="position:relative;margin-bottom:24px;">
+          <div style="position:absolute;left:-26px;top:4px;width:10px;height:10px;background:${v.primary};border-radius:50%;"></div>
+          <div style="font-family:${v.fontEn};font-size:0.85rem;color:${v.primary};font-weight:700;">${escapeHtml(it.date)}</div>
+          <div style="font-weight:700;color:${v.text};margin:4px 0;">${escapeHtml(it.title)}</div>
+          <div style="color:${v.textGray};font-size:0.85rem;">${escapeHtml(it.desc)}</div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  } else if (section.type === 'contact') {
+    inner = `<div style="padding:50px 20px;background:${v.bg};text-align:center;">
+      <h2 style="font-family:${v.fontEn};font-size:1.6rem;font-weight:900;margin:0 0 12px;color:${v.text};">${escapeHtml(p.title)}</h2>
+      <p style="color:${v.textGray};margin:0 0 20px;">${escapeHtml(p.body)}</p>
+      <a href="${escapeHtml(p.btnHref || '#')}" style="display:inline-block;padding:12px 28px;background:${v.primary};color:#fff;font-weight:700;${v.btnStyle}">${escapeHtml(p.btnText || 'CONTACT')}</a>
+    </div>`;
+  } else if (section.type === 'spacer') {
+    inner = `<div style="height:${p.height || 60}px;background:${v.bg};"></div>`;
+  }
+
+  return inner;
+}
+
+// ============================================================
+// HTML生成（公開用）
+// ============================================================
+function generateSiteHtml() {
+  const t = THEMES[state.themeId] || THEMES.racing;
+  const v = t.vars;
+
+  const pageHtml = state.pages.map((page, idx) => {
+    const sections = page.sections.map(s => renderSectionPreviewHtml(s, state.themeId)).join('');
+    return `<div class="page" id="page-${page.id}" style="display:${idx === 0 ? 'block' : 'none'};">${sections}</div>`;
+  }).join('');
+
+  const navHtml = state.pages.map((page, idx) => 
+    `<a href="#page-${page.id}" class="nav-link" data-page="${page.id}">${escapeHtml(page.name)}</a>`
+  ).join('');
+
+  const fonts = `<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Noto+Sans+JP:wght@400;700;900&family=Noto+Serif+JP:wght@400;600;700&family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">`;
+
+  return `<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>私のページ</title>
-<style>body{font-family:sans-serif;max-width:800px;margin:40px auto;padding:20px;line-height:1.6}h1{color:#333}</style>
+<meta name="description" content="${escapeHtml(state.maker?.makerName || '')} の公式サイト">
+<title>${escapeHtml(state.maker?.makerName || state.slug)}</title>
+${fonts}
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: ${v.bg}; color: ${v.text}; font-family: ${v.fontMain}; line-height: 1.6; overflow-x: hidden; }
+  a { color: inherit; text-decoration: none; }
+  header { position: sticky; top: 0; z-index: 100; background: ${v.bg}ee; backdrop-filter: blur(8px); border-bottom: 1px solid ${v.border}; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
+  .logo { font-family: ${v.fontEn}; font-size: 1.2rem; font-weight: 900; letter-spacing: 2px; color: ${v.text}; }
+  nav { display: flex; gap: 16px; flex-wrap: wrap; }
+  .nav-link { font-size: 0.85rem; font-weight: 600; color: ${v.textGray}; transition: color 0.2s; }
+  .nav-link:hover, .nav-link.active { color: ${v.primary}; }
+  .page { display: none; }
+  .page.active { display: block; }
+  footer { text-align: center; padding: 30px 20px; border-top: 1px solid ${v.border}; color: ${v.textGray}; font-size: 0.8rem; }
+  @media (max-width: 600px) {
+    header { padding: 10px 14px; flex-direction: column; gap: 8px; }
+    nav { justify-content: center; }
+  }
+</style>
 </head>
-<body><h1>ようこそ</h1><p>ここにHTMLを書いてください。</p></body>
-</html>` },
-  { id:'profile', name:'プロフィール', desc:'アイコン・名前・自己紹介のカード', html:`<!DOCTYPE html>
-<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>プロフィール</title>
-<style>*{box-sizing:border-box}body{font-family:-apple-system,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;margin:0;display:flex;align-items:center;justify-content:center;padding:20px}.card{background:#fff;border-radius:20px;padding:40px 30px;max-width:400px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}.avatar{width:120px;height:120px;border-radius:50%;margin:0 auto 20px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:3rem;border:4px solid #667eea}h1{margin:0 0 8px;color:#333;font-size:1.6rem}.title{color:#667eea;font-weight:600;margin-bottom:20px}.bio{color:#666;line-height:1.7;margin-bottom:24px}.links a{display:inline-block;margin:4px;padding:8px 20px;background:#667eea;color:#fff;text-decoration:none;border-radius:20px;font-size:.9rem}</style>
-</head><body><div class="card"><div class="avatar">👤</div><h1>あなたの名前</h1><div class="title">肩書き・役職</div><p class="bio">ここに自己紹介を書いてください。</p><div class="links"><a href="#">Twitter</a><a href="#">リンク</a></div></div></body></html>` },
-  { id:'showcase', name:'ショーケース', desc:'作品・商品を並べるグリッド', html:`<!DOCTYPE html>
-<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ショーケース</title>
-<style>*{box-sizing:border-box}body{font-family:-apple-system,sans-serif;background:#f5f5f7;margin:0;padding:40px 20px}.container{max-width:1000px;margin:0 auto}header{text-align:center;margin-bottom:40px}h1{color:#1d1d1f;font-size:2rem;margin:0 0 12px}.subtitle{color:#86868b;font-size:1.1rem}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px}.item{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);transition:.2s}.item:hover{transform:translateY(-4px)}.item-img{width:100%;height:200px;background:linear-gradient(135deg,#ddd,#bbb);display:flex;align-items:center;justify-content:center;font-size:2rem}.item-body{padding:20px}.item-body h3{margin:0 0 8px;color:#1d1d1f}.item-body p{margin:0;color:#86868b;font-size:.9rem}</style>
-</head><body><div class="container"><header><h1>ショーケース</h1><p class="subtitle">私の作品コレクション</p></header><div class="grid"><div class="item"><div class="item-img">📦</div><div class="item-body"><h3>アイテム1</h3><p>説明文</p></div></div><div class="item"><div class="item-img">📦</div><div class="item-body"><h3>アイテム2</h3><p>説明文</p></div></div><div class="item"><div class="item-img">📦</div><div class="item-body"><h3>アイテム3</h3><p>説明文</p></div></div></div></div></body></html>` },
-  { id:'blog', name:'ブログ風', desc:'記事を並べるレイアウト', html:`<!DOCTYPE html>
-<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ブログ</title>
-<style>*{box-sizing:border-box}body{font-family:'Hiragino Mincho ProN',Georgia,serif;background:#fafafa;color:#333;margin:0;line-height:1.8}header{background:#333;color:#fff;padding:40px 20px;text-align:center}header h1{margin:0;font-size:2rem;letter-spacing:2px}header p{margin:8px 0 0;opacity:.8}main{max-width:700px;margin:40px auto;padding:0 20px}article{background:#fff;padding:30px;border-radius:8px;margin-bottom:24px;box-shadow:0 2px 8px rgba(0,0,0,.05)}article h2{margin:0 0 8px}article .meta{color:#999;font-size:.85rem;margin-bottom:16px}article a{color:#667eea;text-decoration:none;display:inline-block;margin-top:16px}</style>
-</head><body><header><h1>私のブログ</h1><p>日々の記録</p></header><main><article><h2>最初の記事</h2><div class="meta">2026年1月1日</div><p>ここに記事の本文を書きます。</p><a href="#">続きを読む →</a></article><article><h2>2つ目の記事</h2><div class="meta">2026年1月2日</div><p>2つ目の記事の本文です。</p><a href="#">続きを読む →</a></article></main></body></html>` },
-  { id:'landing', name:'ランディング', desc:'キャッチコピーとCTAのシンプルLP', html:`<!DOCTYPE html>
-<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ランディング</title>
-<style>*{box-sizing:border-box}body{font-family:-apple-system,sans-serif;margin:0;background:#000;color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(circle at 50% 0%,#1a1a3e 0%,#000 70%)}.hero{text-align:center;max-width:700px}.hero h1{font-size:clamp(2rem,6vw,4rem);margin:0 0 24px;background:linear-gradient(135deg,#667eea,#f093fb);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2}.hero p{font-size:1.2rem;color:#aaa;margin-bottom:40px;line-height:1.7}.cta{display:inline-block;padding:16px 40px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;text-decoration:none;border-radius:50px;font-weight:bold;font-size:1.1rem;box-shadow:0 8px 30px rgba(102,126,234,.5)}</style>
-</head><body><div class="hero"><h1>革新的な何か</h1><p>ここにサービスの説明を書きます。</p><a href="#" class="cta">今すぐ始める →</a></div></body></html>` },
-];
+<body>
+  <header>
+    <div class="logo">${escapeHtml(state.maker?.makerName || 'MY SITE')}</div>
+    <nav>${navHtml}</nav>
+  </header>
+  ${pageHtml}
+  <footer>&copy; ${escapeHtml(state.maker?.makerName || '')} — Created with 架空車街</footer>
+  <script>
+    function showPage() {
+      var hash = location.hash.replace('#page-', '') || '${state.pages[0]?.id || ''}';
+      document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); p.style.display = 'none'; });
+      var target = document.getElementById('page-' + hash);
+      if (target) { target.classList.add('active'); target.style.display = 'block'; }
+      document.querySelectorAll('.nav-link').forEach(function(a) {
+        a.classList.toggle('active', a.dataset.page === hash);
+      });
+      window.scrollTo(0, 0);
+    }
+    window.addEventListener('hashchange', showPage);
+    showPage();
+  <\/script>
+</body>
+</html>`;
+}
 
 // ============================================================
-// GUIモード用プリセット（コンポーネント配列）
+// エディタ：ページタブ
 // ============================================================
-const GUI_PRESETS = [
-  {
-    id: 'blank',
-    name: 'ブランク',
-    desc: '何もないキャンバス',
-    background: '#ffffff',
-    components: []
-  },
-  {
-    id: 'profile',
-    name: 'プロフィール',
-    desc: 'アイコン・名前・自己紹介',
-    background: '#f7fafc',
-    components: [
-      { type:'image', props:{ src:'https://placehold.co/200x200/e2e8f0/94a3b8?text=Avatar' }, style:{ left:400, top:60, width:200, height:200, borderRadius:100 } },
-      { type:'heading', content:'あなたの名前', style:{ left:300, top:290, width:400, height:50, fontSize:32, color:'#1a202c', textAlign:'center', background:'transparent' } },
-      { type:'text', content:'肩書き・役職', style:{ left:300, top:350, width:400, height:30, fontSize:16, color:'#4a5568', textAlign:'center', background:'transparent' } },
-      { type:'text', content:'ここに自己紹介文を書いてください。あなたのスキルや経歴、趣味などを自由に記入できます。', style:{ left:250, top:400, width:500, height:80, fontSize:15, color:'#4a5568', textAlign:'center', background:'transparent', lineHeight:1.7 } },
-      { type:'button', content:'Twitter', props:{ href:'#' }, style:{ left:380, top:510, width:120, height:44, background:'#667eea', color:'#fff', textAlign:'center', borderRadius:22 } },
-      { type:'button', content:'リンク', props:{ href:'#' }, style:{ left:510, top:510, width:120, height:44, background:'#667eea', color:'#fff', textAlign:'center', borderRadius:22 } },
-    ]
-  },
-  {
-    id: 'showcase',
-    name: 'ショーケース',
-    desc: '作品を並べるグリッド',
-    background: '#f5f5f7',
-    components: [
-      { type:'heading', content:'ショーケース', style:{ left:300, top:40, width:400, height:60, fontSize:36, color:'#1d1d1f', textAlign:'center', background:'transparent' } },
-      { type:'text', content:'私の作品コレクション', style:{ left:300, top:105, width:400, height:30, fontSize:16, color:'#86868b', textAlign:'center', background:'transparent' } },
-      { type:'image', props:{ src:'https://placehold.co/280x200/e2e8f0/94a3b8?text=Item1' }, style:{ left:80, top:170, width:280, height:200, borderRadius:16 } },
-      { type:'image', props:{ src:'https://placehold.co/280x200/e2e8f0/94a3b8?text=Item2' }, style:{ left:380, top:170, width:280, height:200, borderRadius:16 } },
-      { type:'image', props:{ src:'https://placehold.co/280x200/e2e8f0/94a3b8?text=Item3' }, style:{ left:680, top:170, width:280, height:200, borderRadius:16 } },
-    ]
-  },
-  {
-    id: 'landing',
-    name: 'ランディング',
-    desc: 'キャッチコピーとCTA',
-    background: '#0a0c1b',
-    components: [
-      { type:'heading', content:'革新的な何か', style:{ left:150, top:150, width:700, height:80, fontSize:56, color:'#ffffff', textAlign:'center', background:'transparent' } },
-      { type:'text', content:'ここにサービスの説明を書きます。あなたのメーカーの魅力を伝えましょう。', style:{ left:200, top:250, width:600, height:60, fontSize:18, color:'#aaaaaa', textAlign:'center', background:'transparent', lineHeight:1.7 } },
-      { type:'button', content:'今すぐ始める →', props:{ href:'#' }, style:{ left:400, top:340, width:200, height:56, background:'#667eea', color:'#fff', textAlign:'center', borderRadius:28, fontSize:18 } },
-    ]
-  },
-];
+function renderPageTabs() {
+  const container = $('page-tabs');
+  const html = state.pages.map(p => {
+    const del = state.pages.length > 1 ? `<span class="page-tab-del" data-del-page="${p.id}">×</span>` : '';
+    return `<button class="page-tab ${p.id === state.currentPageId ? 'active' : ''}" data-page-id="${p.id}">${escapeHtml(p.name)}${del}</button>`;
+  }).join('');
+  const addBtn = `<button class="page-tab" id="add-page-btn" style="color:#00d2ff;">＋ ページ追加</button>`;
+  container.innerHTML = html + addBtn;
+}
 
 // ============================================================
-// localStorage
+// エディタ：セクションリスト
 // ============================================================
-function saveDraft() {
-  try {
-    if (state.mode === 'manual') {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ slug: state.slug, html: state.html, savedAt: Date.now() }));
-    } else {
-      localStorage.setItem(GUI_STORAGE_KEY, JSON.stringify({
-        slug: state.slug,
-        background: state.guiBackground,
-        components: state.guiComponents,
-        savedAt: Date.now()
-      }));
-    }
-    state.isDirty = false;
-  } catch (e) {}
+function renderSectionList() {
+  const page = state.pages.find(p => p.id === state.currentPageId);
+  const container = $('section-list');
+  if (!page) { container.innerHTML = ''; return; }
+
+  if (page.sections.length === 0) {
+    container.innerHTML = `<div style="padding:60px 20px;text-align:center;color:#555;border:2px dashed rgba(255,255,255,0.1);border-radius:8px;">左のパレットからセクションを追加してください</div>`;
+    return;
+  }
+
+  container.innerHTML = page.sections.map((sec, idx) => {
+    const t = SECTION_NAMES[sec.type] || sec.type;
+    return `<div class="section-block ${sec.id === state.selectedSectionId ? 'selected' : ''}" data-section-id="${sec.id}">
+      <div class="section-block-label">
+        <span>${t}</span>
+        <div class="section-actions">
+          <button data-move-up="${sec.id}" title="上へ">↑</button>
+          <button data-move-down="${sec.id}" title="下へ">↓</button>
+          <button data-delete="${sec.id}" title="削除">🗑</button>
+        </div>
+      </div>
+      <div class="section-preview">${escapeHtml(SECTION_DESCS[sec.type] ? SECTION_DESCS[sec.type](sec) : '')}</div>
+    </div>`;
+  }).join('');
 }
-function loadDraft() {
-  try {
-    if (state.mode === 'manual') {
-      const r = localStorage.getItem(STORAGE_KEY);
-      return r ? JSON.parse(r) : null;
-    } else {
-      const r = localStorage.getItem(GUI_STORAGE_KEY);
-      return r ? JSON.parse(r) : null;
-    }
-  } catch (e) { return null; }
+
+const SECTION_NAMES = {
+  hero: 'ヒーロー',
+  text: 'テキスト',
+  image: '画像',
+  cards: 'カード',
+  gallery: 'ギャラリー',
+  timeline: 'タイムライン',
+  contact: 'コンタクト',
+  spacer: '余白',
+};
+const SECTION_DESCS = {
+  hero: s => s.props.title || 'タイトル未設定',
+  text: s => s.props.title || 'タイトル未設定',
+  image: s => s.props.caption || s.props.src || '画像未設定',
+  cards: s => `${(s.props.items||[]).length} 枚のカード`,
+  gallery: s => `${(s.props.images||[]).length} 枚の画像`,
+  timeline: s => `${(s.props.items||[]).length} 件の履歴`,
+  contact: s => s.props.title || 'コンタクト',
+  spacer: s => `高さ ${s.props.height || 60}px`,
+};
+
+// ============================================================
+// エディタ：プロパティパネル
+// ============================================================
+function renderPropertiesPanel() {
+  const container = $('properties-content');
+  const page = state.pages.find(p => p.id === state.currentPageId);
+  const section = page && page.sections.find(s => s.id === state.selectedSectionId);
+
+  if (!section) {
+    container.innerHTML = `<div class="prop-empty">セクションを選択してください</div>`;
+    return;
+  }
+
+  let html = '';
+  const p = section.props || {};
+
+  if (section.type === 'hero') {
+    html += `<div class="prop-group"><label>タイトル</label><input type="text" id="p-title" value="${escapeHtml(p.title)}"></div>`;
+    html += `<div class="prop-group"><label>サブタイトル</label><input type="text" id="p-subtitle" value="${escapeHtml(p.subtitle)}"></div>`;
+    html += `<div class="prop-group"><label>ボタンテキスト</label><input type="text" id="p-btnText" value="${escapeHtml(p.btnText)}"></div>`;
+    html += `<div class="prop-group"><label>ボタンリンク</label><input type="text" id="p-btnHref" value="${escapeHtml(p.btnHref)}"></div>`;
+    html += `<div class="prop-group"><label>背景画像URL（任意）</label><input type="text" id="p-bgImage" value="${escapeHtml(p.bgImage)}"></div>`;
+  } else if (section.type === 'text') {
+    html += `<div class="prop-group"><label>見出し</label><input type="text" id="p-title" value="${escapeHtml(p.title)}"></div>`;
+    html += `<div class="prop-group"><label>本文</label><textarea id="p-body">${escapeHtml(p.body)}</textarea></div>`;
+  } else if (section.type === 'image') {
+    html += `<div class="prop-group"><label>画像URL</label><input type="text" id="p-src" value="${escapeHtml(p.src)}"></div>`;
+    html += `<div class="prop-group"><button class="btn btn-secondary btn-sm" id="p-upload-img" style="width:100%;">画像をアップロード</button></div>`;
+    html += `<div class="prop-group"><label>キャプション</label><input type="text" id="p-caption" value="${escapeHtml(p.caption)}"></div>`;
+  } else if (section.type === 'cards') {
+    html += `<div class="prop-group"><label>見出し</label><input type="text" id="p-title" value="${escapeHtml(p.title)}"></div>`;
+    html += `<div class="prop-group"><label>カード（${(p.items||[]).length}枚）</label><div id="p-cards-list"></div><button class="btn btn-secondary btn-sm" id="p-add-card" style="width:100%; margin-top:6px;">＋ カード追加</button></div>`;
+  } else if (section.type === 'gallery') {
+    html += `<div class="prop-group"><label>見出し</label><input type="text" id="p-title" value="${escapeHtml(p.title)}"></div>`;
+    html += `<div class="prop-group"><label>画像（${(p.images||[]).length}枚）</label><div id="p-gallery-list"></div><button class="btn btn-secondary btn-sm" id="p-add-gallery" style="width:100%; margin-top:6px;">＋ 画像追加</button></div>`;
+  } else if (section.type === 'timeline') {
+    html += `<div class="prop-group"><label>見出し</label><input type="text" id="p-title" value="${escapeHtml(p.title)}"></div>`;
+    html += `<div class="prop-group"><label>履歴（${(p.items||[]).length}件）</label><div id="p-timeline-list"></div><button class="btn btn-secondary btn-sm" id="p-add-timeline" style="width:100%; margin-top:6px;">＋ 履歴追加</button></div>`;
+  } else if (section.type === 'contact') {
+    html += `<div class="prop-group"><label>見出し</label><input type="text" id="p-title" value="${escapeHtml(p.title)}"></div>`;
+    html += `<div class="prop-group"><label>本文</label><textarea id="p-body">${escapeHtml(p.body)}</textarea></div>`;
+    html += `<div class="prop-group"><label>ボタンテキスト</label><input type="text" id="p-btnText" value="${escapeHtml(p.btnText)}"></div>`;
+    html += `<div class="prop-group"><label>ボタンリンク</label><input type="text" id="p-btnHref" value="${escapeHtml(p.btnHref)}"></div>`;
+  } else if (section.type === 'spacer') {
+    html += `<div class="prop-group"><label>高さ (px)</label><input type="number" id="p-height" value="${p.height || 60}"></div>`;
+  }
+
+  container.innerHTML = html;
+
+  // イベント登録（共通）
+  const bindText = (id, key) => {
+    const el = $(id);
+    if (el) el.addEventListener('input', () => {
+      section.props[key] = el.value;
+      scheduleSave();
+      renderSectionList();
+    });
+  };
+  ['title','subtitle','btnText','btnHref','bgImage','body','caption','height','src'].forEach(k => bindText('p-' + k, k));
+
+  // 画像アップロード
+  const uploadBtn = $('p-upload-img');
+  if (uploadBtn) uploadBtn.addEventListener('click', () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = () => {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        section.props.src = ev.target.result;
+        $('p-src').value = ev.target.result;
+        scheduleSave();
+        renderSectionList();
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  });
+
+  // カードリスト
+  if (section.type === 'cards') {
+    renderCardsList(section);
+    const addBtn = $('p-add-card');
+    if (addBtn) addBtn.addEventListener('click', () => {
+      section.props.items = section.props.items || [];
+      section.props.items.push({ tag: '', title: '新しいカード', desc: '', href: '#' });
+      scheduleSave();
+      renderPropertiesPanel();
+      renderSectionList();
+    });
+  }
+
+  // ギャラリー
+  if (section.type === 'gallery') {
+    renderGalleryList(section);
+    const addBtn = $('p-add-gallery');
+    if (addBtn) addBtn.addEventListener('click', () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = () => {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          section.props.images = section.props.images || [];
+          section.props.images.push(ev.target.result);
+          scheduleSave();
+          renderPropertiesPanel();
+          renderSectionList();
+        };
+        reader.readAsDataURL(file);
+      };
+      input.click();
+    });
+  }
+
+  // タイムライン
+  if (section.type === 'timeline') {
+    renderTimelineList(section);
+    const addBtn = $('p-add-timeline');
+    if (addBtn) addBtn.addEventListener('click', () => {
+      section.props.items = section.props.items || [];
+      section.props.items.push({ date: '', title: '新しい出来事', desc: '' });
+      scheduleSave();
+      renderPropertiesPanel();
+      renderSectionList();
+    });
+  }
 }
-function clearDraft() {
-  try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
-  try { localStorage.removeItem(GUI_STORAGE_KEY); } catch (e) {}
+
+function renderCardsList(section) {
+  const list = $('p-cards-list');
+  if (!list) return;
+  const items = section.props.items || [];
+  list.innerHTML = items.map((it, i) => `
+    <div class="prop-list-item">
+      <span class="prop-list-del" data-del-card="${i}">×</span>
+      <input type="text" value="${escapeHtml(it.tag)}" placeholder="タグ" data-card-field="tag" data-card-idx="${i}" style="width:100%;margin-bottom:4px;">
+      <input type="text" value="${escapeHtml(it.title)}" placeholder="タイトル" data-card-field="title" data-card-idx="${i}" style="width:100%;margin-bottom:4px;">
+      <textarea placeholder="説明" data-card-field="desc" data-card-idx="${i}" style="width:100%;margin-bottom:4px;">${escapeHtml(it.desc)}</textarea>
+      <input type="text" value="${escapeHtml(it.href)}" placeholder="リンク" data-card-field="href" data-card-idx="${i}" style="width:100%;">
+    </div>
+  `).join('');
+
+  list.querySelectorAll('[data-card-field]').forEach(el => {
+    el.addEventListener('input', () => {
+      const i = Number(el.dataset.cardIdx);
+      section.props.items[i][el.dataset.cardField] = el.value;
+      scheduleSave();
+      renderSectionList();
+    });
+  });
+  list.querySelectorAll('[data-del-card]').forEach(el => {
+    el.addEventListener('click', () => {
+      section.props.items.splice(Number(el.dataset.delCard), 1);
+      scheduleSave();
+      renderPropertiesPanel();
+      renderSectionList();
+    });
+  });
 }
+
+function renderGalleryList(section) {
+  const list = $('p-gallery-list');
+  if (!list) return;
+  const imgs = section.props.images || [];
+  list.innerHTML = imgs.map((src, i) => `
+    <div class="prop-list-item" style="display:flex;align-items:center;gap:8px;">
+      <img src="${escapeHtml(src)}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;">
+      <span style="flex:1;font-size:0.7rem;color:#888;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(src.substring(0,30))}...</span>
+      <span class="prop-list-del" data-del-gallery="${i}">×</span>
+    </div>
+  `).join('');
+  list.querySelectorAll('[data-del-gallery]').forEach(el => {
+    el.addEventListener('click', () => {
+      section.props.images.splice(Number(el.dataset.delGallery), 1);
+      scheduleSave();
+      renderPropertiesPanel();
+      renderSectionList();
+    });
+  });
+}
+
+function renderTimelineList(section) {
+  const list = $('p-timeline-list');
+  if (!list) return;
+  const items = section.props.items || [];
+  list.innerHTML = items.map((it, i) => `
+    <div class="prop-list-item">
+      <span class="prop-list-del" data-del-timeline="${i}">×</span>
+      <input type="text" value="${escapeHtml(it.date)}" placeholder="日付" data-tl-field="date" data-tl-idx="${i}" style="width:100%;margin-bottom:4px;">
+      <input type="text" value="${escapeHtml(it.title)}" placeholder="タイトル" data-tl-field="title" data-tl-idx="${i}" style="width:100%;margin-bottom:4px;">
+      <textarea placeholder="説明" data-tl-field="desc" data-tl-idx="${i}" style="width:100%;">${escapeHtml(it.desc)}</textarea>
+    </div>
+  `).join('');
+  list.querySelectorAll('[data-tl-field]').forEach(el => {
+    el.addEventListener('input', () => {
+      const i = Number(el.dataset.tlIdx);
+      section.props.items[i][el.dataset.tlField] = el.value;
+      scheduleSave();
+      renderSectionList();
+    });
+  });
+  list.querySelectorAll('[data-del-timeline]').forEach(el => {
+    el.addEventListener('click', () => {
+      section.props.items.splice(Number(el.dataset.delTimeline), 1);
+      scheduleSave();
+      renderPropertiesPanel();
+      renderSectionList();
+    });
+  });
+}
+
+// ============================================================
+// セクション追加
+// ============================================================
+const DEFAULT_SECTION_PROPS = {
+  hero: () => ({ title: 'キャッチコピー', subtitle: 'サブタイトルをここに', btnText: 'VIEW MORE', btnHref: '#', bgImage: '' }),
+  text: () => ({ title: '見出し', body: '本文をここに書きます。' }),
+  image: () => ({ src: '', caption: '' }),
+  cards: () => ({ title: 'カード', items: [{ tag: 'TAG', title: 'カード1', desc: '説明', href: '#' }] }),
+  gallery: () => ({ title: 'ギャラリー', images: [] }),
+  timeline: () => ({ title: 'タイムライン', items: [{ date: '2025/01/01', title: '出来事', desc: '説明' }] }),
+  contact: () => ({ title: 'CONTACT', body: 'お問い合わせはこちら。', btnText: 'お問い合わせ', btnHref: '#' }),
+  spacer: () => ({ height: 60 }),
+};
+
+function addSection(type) {
+  const page = state.pages.find(p => p.id === state.currentPageId);
+  if (!page) return;
+  const sec = {
+    id: uuid(),
+    type,
+    props: DEFAULT_SECTION_PROPS[type] ? DEFAULT_SECTION_PROPS[type]() : {},
+  };
+  page.sections.push(sec);
+  state.selectedSectionId = sec.id;
+  scheduleSave();
+  renderSectionList();
+  renderPropertiesPanel();
+  toast('セクションを追加しました');
+}
+
+// ============================================================
+// 保存・復元
+// ============================================================
 function scheduleSave() {
   state.isDirty = true;
   clearTimeout(scheduleSave._t);
   scheduleSave._t = setTimeout(saveDraft, SAVE_DEBOUNCE);
 }
-
-// ============================================================
-// 手動モード：プレビュー
-// ============================================================
-let previewTimer = null;
-function updatePreview() {
-  clearTimeout(previewTimer);
-  previewTimer = setTimeout(() => {
-    const frame = $('preview-frame');
-    frame.srcdoc = state.html || '<p style="padding:20px;color:#888;">プレビューする内容がありません</p>';
-  }, 300);
+function saveDraft() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      slug: state.slug,
+      themeId: state.themeId,
+      pages: state.pages,
+      currentPageId: state.currentPageId,
+      savedAt: Date.now(),
+    }));
+    state.isDirty = false;
+  } catch (e) {}
+}
+function loadDraft() {
+  try {
+    const r = localStorage.getItem(STORAGE_KEY);
+    return r ? JSON.parse(r) : null;
+  } catch (e) { return null; }
+}
+function clearDraft() {
+  try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
 }
 
 // ============================================================
-// スラッグ検証
-// ============================================================
-function validateSlugLocal(slug) {
-  if (!slug) return 'ページ名を入力してください';
-  if (!/^[a-z0-9][a-z0-9_-]{0,63}$/.test(slug)) return '英小文字・数字・-_ のみ、先頭は英数字、最大64文字';
-  const reserved = ['cpmcarshop.github.io', 'makerpage', 'admin', 'api', 'www', 'assets', 'icons'];
-  if (reserved.includes(slug)) return 'このページ名は使用できません';
-  return null;
-}
-
-// ============================================================
-// サイト情報
+// サイト情報表示
 // ============================================================
 function renderSiteInfo() {
   const bar = $('site-info-bar');
@@ -504,40 +1006,29 @@ function renderSiteInfo() {
   bar.style.display = 'block';
   const s = state.site;
   const cls = s.published ? 'published' : 'draft';
-  const txt = s.published ? '公開中' : '下書き（未公開）';
-  bar.innerHTML = `ページ名: <strong>${escapeHtml(s.slug)}</strong><span class="status-badge ${cls}">${txt}</span>${s.published ? ` | <a href="${s.publicUrl}" target="_blank" rel="noopener">公開URL</a> | <a href="${s.previewUrl}" target="_blank" rel="noopener">直接表示</a>` : ''}`;
+  const txt = s.published ? '公開中' : '下書き';
+  bar.innerHTML = `ページ名: <strong>${escapeHtml(s.slug)}</strong><span class="status-badge ${cls}">${txt}</span>${s.published ? ` | <a href="${s.publicUrl}" target="_blank" rel="noopener">公開URL</a>` : ''}`;
   $('delete-btn').style.display = 'inline-block';
 }
 
 // ============================================================
-// 初期化（ログイン後）
+// 初期化
 // ============================================================
 async function initAfterLogin(user) {
   showLoader();
   try {
     let makerInfo;
-    try {
-      makerInfo = await api('getMyMakerInfo');
-    } catch (e) {
+    try { makerInfo = await api('getMyMakerInfo'); }
+    catch (e) {
       setDebug('Your UID: ' + user.uid + '\nエラー: ' + e.message);
-      showScreen('not-maker');
-      return;
+      showScreen('not-maker'); return;
     }
-
     const maker = makerInfo && makerInfo.maker;
     if (!maker) {
       const d = (makerInfo && makerInfo.debug) || {};
-      setDebug(
-        'Your UID: ' + user.uid + '\n' +
-        'mainWorkerStatus: ' + (d.mainWorkerStatus || '?') + '\n' +
-        'mainWorkerRawBody: ' + (d.mainWorkerRawBody || '?') + '\n' +
-        'makerFound: ' + (d.makerFound === true ? 'true' : (d.makerFound === false ? 'false' : '?')) + '\n' +
-        'makerId: ' + (d.makerId || '-')
-      );
-      showScreen('not-maker');
-      return;
+      setDebug('Your UID: ' + user.uid + '\nmakerFound: ' + d.makerFound);
+      showScreen('not-maker'); return;
     }
-
     state.maker = maker;
 
     try { state.site = await api('getMySite'); }
@@ -548,37 +1039,33 @@ async function initAfterLogin(user) {
       $('slug-input').value = state.slug;
       $('slug-input').disabled = true;
       $('slug-input').classList.add('valid');
-      // 既存サイトのモードを復元
-      state.mode = state.site.mode === 'gui' ? 'gui' : 'manual';
-    } else {
-      state.mode = 'manual';
+      state.mode = state.site.mode === 'manual' ? 'manual' : 'gui';
     }
 
-    // ドラフト復元
+    // ドラフト復元 or テーマ初期化
     const draft = loadDraft();
-    if (state.mode === 'manual') {
-      state.html = (draft && draft.slug === state.slug) ? draft.html : PRESETS[0].html;
-      $('html-editor').value = state.html;
-      updatePreview();
+    if (draft && draft.slug === state.slug && draft.pages) {
+      state.themeId = draft.themeId || 'racing';
+      state.pages = draft.pages;
+      state.currentPageId = draft.currentPageId || state.pages[0]?.id;
     } else {
-      if (draft && draft.slug === state.slug) {
-        state.guiComponents = draft.components || [];
-        state.guiBackground = draft.background || '#ffffff';
-      } else {
-        state.guiComponents = [];
-        state.guiBackground = '#ffffff';
-      }
-      renderGuiCanvas();
+      state.themeId = 'racing';
+      state.pages = THEMES.racing.defaultPages();
+      state.currentPageId = state.pages[0]?.id;
     }
 
-    // モードタブの状態を反映
-    updateModeTabs();
-    switchMode(state.mode, false);
+    // 手動モードのHTML（最低限）
+    if (!state.html) state.html = '<!DOCTYPE html>\n<html>\n<head><meta charset="UTF-8"><title>My Page</title></head>\n<body>\n<h1>Hello</h1>\n</body>\n</html>';
 
+    // 初期描画
+    renderPageTabs();
+    renderSectionList();
+    renderPropertiesPanel();
+    switchMode(state.mode, false);
     renderSiteInfo();
     showScreen('editor');
   } catch (e) {
-    console.error('initAfterLogin error:', e);
+    console.error(e);
     toast('初期化エラー: ' + e.message, true);
   } finally { hideLoader(); }
 }
@@ -586,596 +1073,242 @@ async function initAfterLogin(user) {
 // ============================================================
 // モード切替
 // ============================================================
-function updateModeTabs() {
-  document.querySelectorAll('#mode-tabs button').forEach(b => {
-    b.classList.toggle('active', b.dataset.mode === state.mode);
-  });
-}
-
 function switchMode(mode, save = true) {
   if (save && state.isDirty) {
     if (!confirm('保存されていない変更があります。モードを切り替えますか？')) return;
   }
   state.mode = mode;
-  updateModeTabs();
-
-  const manual = $('manual-mode-container');
-  const gui = $('gui-mode-container');
+  document.querySelectorAll('#mode-tabs button').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
   if (mode === 'manual') {
-    manual.style.display = 'flex';
-    gui.style.display = 'none';
+    $('manual-mode-container').style.display = 'flex';
+    $('gui-mode-container').style.display = 'none';
     $('html-editor').value = state.html;
-    updatePreview();
+    $('preview-frame').srcdoc = state.html;
   } else {
-    manual.style.display = 'none';
-    gui.style.display = 'flex';
-    renderGuiCanvas();
+    $('manual-mode-container').style.display = 'none';
+    $('gui-mode-container').style.display = 'flex';
+    renderPageTabs();
+    renderSectionList();
+    renderPropertiesPanel();
   }
 }
 
+// ============================================================
+// イベント登録
+// ============================================================
 $('mode-tabs').addEventListener('click', (e) => {
   const btn = e.target.closest('button[data-mode]');
-  if (!btn || btn.disabled) return;
-  if (state.site && state.site.hasSite && state.site.mode !== state.mode) {
-    toast('公開済みサイトのモードは変更できません', true);
-    return;
-  }
-  switchMode(btn.dataset.mode);
+  if (btn) switchMode(btn.dataset.mode);
 });
 
-// ============================================================
-// GUIモード：キャンバス描画
-// ============================================================
-const canvas = $('gui-canvas');
-let moveable = null;
-
-function renderGuiCanvas() {
-  if (!canvas) return;
-  canvas.innerHTML = '';
-  canvas.style.background = state.guiBackground || '#ffffff';
-  canvas.style.minHeight = '800px';
-
-  state.guiComponents.forEach(comp => {
-    const el = document.createElement('div');
-    el.className = 'gui-component';
-    el.dataset.id = comp.id;
-    el.style.left = comp.style.left + 'px';
-    el.style.top = comp.style.top + 'px';
-    el.style.width = comp.style.width + 'px';
-    el.style.height = comp.style.height + 'px';
-    el.style.background = comp.style.background || 'transparent';
-    el.style.color = comp.style.color || '#333';
-    el.style.fontSize = (comp.style.fontSize || 16) + 'px';
-    el.style.borderRadius = (comp.style.borderRadius || 0) + 'px';
-    el.style.textAlign = comp.style.textAlign || 'left';
-    el.style.lineHeight = comp.style.lineHeight || 1.4;
-    el.style.padding = '4px';
-    el.style.boxSizing = 'border-box';
-    el.style.overflow = 'hidden';
-    el.style.display = 'flex';
-    el.style.flexDirection = 'column';
-    el.style.justifyContent = 'center';
-
-    if (comp.type === 'heading' || comp.type === 'text') {
-      el.contentEditable = 'true';
-      el.innerText = comp.content || '';
-      el.addEventListener('input', () => {
-        comp.content = el.innerText;
-        scheduleSave();
-      });
-    } else if (comp.type === 'image') {
-      const img = document.createElement('img');
-      img.src = comp.props.src || 'https://placehold.co/200x150?text=Image';
-      img.style.width = '100%';
-      img.style.height = '100%';
-      img.style.objectFit = 'cover';
-      img.style.borderRadius = 'inherit';
-      el.appendChild(img);
-      el.style.padding = '0';
-      el.addEventListener('dblclick', () => {
-        // 画像選択ダイアログ
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
-        input.onchange = () => {
-          const file = input.files[0];
-          if (!file) return;
-          if (file.size > 10 * 1024 * 1024) { toast('10MBを超えています', true); return; }
-          const reader = new FileReader();
-          reader.onload = (ev) => {
-            comp.props.src = ev.target.result;
-            img.src = ev.target.result;
-            scheduleSave();
-          };
-          reader.readAsDataURL(file);
-        };
-        input.click();
-      });
-    } else if (comp.type === 'button') {
-      el.innerText = comp.content || 'ボタン';
-      el.style.background = comp.style.background || '#00d2ff';
-      el.style.color = comp.style.color || '#000';
-      el.style.borderRadius = (comp.style.borderRadius || 4) + 'px';
-      el.style.alignItems = 'center';
-      el.style.textAlign = 'center';
-      el.style.cursor = 'pointer';
-      el.addEventListener('click', (e) => {
-        e.stopPropagation();
-        selectComponent(comp.id);
-      });
-    } else if (comp.type === 'divider') {
-      el.style.padding = '0';
-      el.style.justifyContent = 'center';
-      const hr = document.createElement('hr');
-      hr.style.border = 'none';
-      hr.style.borderTop = '2px solid #ccc';
-      hr.style.width = '100%';
-      hr.style.margin = '0';
-      el.appendChild(hr);
-    } else if (comp.type === 'spacer') {
-      el.style.padding = '0';
-      el.style.background = 'transparent';
-    }
-
-    // 選択状態の復元
-    if (state.selectedId === comp.id) {
-      el.classList.add('selected');
-    }
-
-    el.addEventListener('mousedown', (e) => {
-      if (e.target === el || el.contains(e.target)) {
-        selectComponent(comp.id);
-      }
-    });
-
-    canvas.appendChild(el);
-  });
-
-  // Moveableの初期化（選択中の要素があればアタッチ）
-  initMoveable();
-// 修正後（render 引数を削除したので）
-if (state.selectedId) {
-  selectComponent(state.selectedId);
-} else {
-  deselectComponent();
-}
-}
-
-// ============================================================
-// Moveable 初期化
-// ============================================================
-function initMoveable() {
-  if (!window.Moveable) {
-    console.warn('Moveable not loaded');
-    return;
-  }
-  if (moveable) {
-    moveable.destroy();
-    moveable = null;
-  }
-  moveable = new Moveable(document.body, {
-    target: null,
-    draggable: true,
-    resizable: true,
-    rotatable: false,
-    keepRatio: false,
-    snappable: true,
-    bounds: { left: 0, top: 0, right: canvas.offsetWidth, bottom: canvas.offsetHeight },
-    edge: false,
-    origin: false,
-  });
-
-  moveable.on('drag', ({ target, left, top }) => {
-    const id = target.dataset.id;
-    const comp = state.guiComponents.find(c => c.id === id);
-    if (comp) {
-      comp.style.left = Math.round(left);
-      comp.style.top = Math.round(top);
-      target.style.left = comp.style.left + 'px';
-      target.style.top = comp.style.top + 'px';
-      scheduleSave();
-    }
-  });
-
-  moveable.on('resize', ({ target, width, height, drag }) => {
-    const id = target.dataset.id;
-    const comp = state.guiComponents.find(c => c.id === id);
-    if (comp) {
-      comp.style.width = Math.round(width);
-      comp.style.height = Math.round(height);
-      comp.style.left = Math.round(drag.left);
-      comp.style.top = Math.round(drag.top);
-      target.style.width = comp.style.width + 'px';
-      target.style.height = comp.style.height + 'px';
-      target.style.left = comp.style.left + 'px';
-      target.style.top = comp.style.top + 'px';
-      scheduleSave();
-    }
-  });
-}
-
-// ============================================================
-// コンポーネント選択
-// ============================================================
-function selectComponent(id) {
-  // 前の選択を解除
-  if (state.selectedId && state.selectedId !== id) {
-    const prev = canvas.querySelector(`.gui-component[data-id="${state.selectedId}"]`);
-    if (prev) prev.classList.remove('selected');
-  }
-  state.selectedId = id;
-
-  const comp = state.guiComponents.find(c => c.id === id);
-  if (!comp) { deselectComponent(); return; }
-
-  const el = canvas.querySelector(`.gui-component[data-id="${id}"]`);
-  if (!el) { deselectComponent(); return; }
-  el.classList.add('selected');
-
-  if (moveable) {
-    moveable.target = el;
-    moveable.updateRect();
-  }
-  renderProperties(comp);
-}
-
-function deselectComponent() {
-  state.selectedId = null;
-  if (moveable) moveable.target = null;
-  renderProperties(null);
-}
-
-// ============================================================
-// プロパティパネル
-// ============================================================
-
-function toHex(color) {
-  if (!color) return '#ffffff';
-  if (color.startsWith('#')) return color.length === 4 ? '#' + color[1]+color[1]+color[2]+color[2]+color[3]+color[3] : color;
-  const ctx = document.createElement('canvas').getContext('2d');
-  ctx.fillStyle = color;
-  return ctx.fillStyle;
-}
-
-// ============================================================
-// GUI：コンポーネント追加
-// ============================================================
-function addComponent(type) {
-  const id = uuid();
-  let comp = {
-    id,
-    type,
-    content: '',
-    props: {},
-    style: {
-      left: 50,
-      top: 50,
-      width: 300,
-      height: 60,
-      background: 'transparent',
-      color: '#333333',
-      fontSize: 16,
-      textAlign: 'left',
-      borderRadius: 0,
-      lineHeight: 1.4,
-    }
-  };
-
-  if (type === 'heading') {
-    comp.content = '見出しテキスト';
-    comp.style.fontSize = 32;
-    comp.style.height = 60;
-  } else if (type === 'text') {
-    comp.content = 'ここにテキストを入力してください。';
-    comp.style.height = 80;
-    comp.style.lineHeight = 1.7;
-  } else if (type === 'image') {
-    comp.props.src = 'https://placehold.co/300x200?text=Image';
-    comp.style.width = 300;
-    comp.style.height = 200;
-    comp.style.padding = '0';
-  } else if (type === 'button') {
-    comp.content = 'ボタン';
-    comp.props.href = '#';
-    comp.style.background = '#00d2ff';
-    comp.style.color = '#000000';
-    comp.style.borderRadius = 4;
-    comp.style.width = 160;
-    comp.style.height = 48;
-    comp.style.textAlign = 'center';
-  } else if (type === 'divider') {
-    comp.style.width = 400;
-    comp.style.height = 10;
-    comp.style.padding = '0';
-  } else if (type === 'spacer') {
-    comp.style.width = 200;
-    comp.style.height = 40;
-    comp.style.background = 'transparent';
-    comp.style.padding = '0';
-  }
-
-  // 少しずつずらして重ならないように
-  const count = state.guiComponents.length;
-  comp.style.left = 50 + (count % 5) * 20;
-  comp.style.top = 50 + (count % 5) * 20;
-
-// 修正後（renderGuiCanvas の中で selectComponent が呼ばれるので削除）
-state.guiComponents.push(comp);
-state.selectedId = id;    // 事前にセット
-scheduleSave();
-renderGuiCanvas();
-toast('コンポーネントを追加しました');
-}
-
-document.querySelector('.gui-palette').addEventListener('click', (e) => {
-  const btn = e.target.closest('button[data-add]');
-  if (btn) addComponent(btn.dataset.add);
-});
-
-// ============================================================
-// GUI：背景色
-// ============================================================
-function setGuiBackground(color) {
-  state.guiBackground = color;
-  canvas.style.background = color;
-  scheduleSave();
-}
-
-// 背景色変更UIをプロパティパネルに常設（コンポーネント未選択時）
-function renderProperties(comp) {
-  const container = $('gui-properties-content');
-  if (!comp) {
-    container.innerHTML = `
-      <div class="form-group">
-        <label>キャンバス背景色</label>
-        <input type="color" id="canvas-bg" value="${toHex(state.guiBackground)}">
-      </div>
-      <div class="no-selection">コンポーネントを選択してください</div>
-    `;
-    const bg = $('canvas-bg');
-    if (bg) bg.addEventListener('input', () => {
-      setGuiBackground(bg.value);
-    });
-    return;
-  }
-
-  let html = '';
-  html += `<div class="form-group"><label>種類</label><div style="font-size:0.85rem;color:#aaa;">${escapeHtml(comp.type)}</div></div>`;
-
-  html += `<div class="form-group"><label>幅 (px)</label><input type="number" id="prop-width" value="${comp.style.width}"></div>`;
-  html += `<div class="form-group"><label>高さ (px)</label><input type="number" id="prop-height" value="${comp.style.height}"></div>`;
-  html += `<div class="form-group"><label>X (px)</label><input type="number" id="prop-left" value="${comp.style.left}"></div>`;
-  html += `<div class="form-group"><label>Y (px)</label><input type="number" id="prop-top" value="${comp.style.top}"></div>`;
-
-  if (comp.type === 'heading' || comp.type === 'text') {
-    html += `<div class="form-group"><label>フォントサイズ (px)</label><input type="number" id="prop-fontsize" value="${comp.style.fontSize || 16}"></div>`;
-    html += `<div class="form-group"><label>文字色</label><input type="color" id="prop-color" value="${toHex(comp.style.color || '#333333')}"></div>`;
-    html += `<div class="form-group"><label>背景色</label><input type="color" id="prop-bg" value="${toHex(comp.style.background || '#ffffff')}"></div>`;
-    html += `<div class="form-group"><label>テキスト配置</label><select id="prop-textalign">
-      <option value="left" ${comp.style.textAlign==='left'?'selected':''}>左</option>
-      <option value="center" ${comp.style.textAlign==='center'?'selected':''}>中央</option>
-      <option value="right" ${comp.style.textAlign==='right'?'selected':''}>右</option>
-    </select></div>`;
-    html += `<div class="form-group"><label>行の高さ</label><input type="number" step="0.1" id="prop-lineheight" value="${comp.style.lineHeight || 1.4}"></div>`;
-  }
-
-  if (comp.type === 'button') {
-    html += `<div class="form-group"><label>ラベル</label><input type="text" id="prop-content" value="${escapeHtml(comp.content || '')}"></div>`;
-    html += `<div class="form-group"><label>リンク先</label><input type="text" id="prop-href" value="${escapeHtml(comp.props.href || '')}"></div>`;
-    html += `<div class="form-group"><label>背景色</label><input type="color" id="prop-bg" value="${toHex(comp.style.background || '#00d2ff')}"></div>`;
-    html += `<div class="form-group"><label>文字色</label><input type="color" id="prop-color" value="${toHex(comp.style.color || '#000000')}"></div>`;
-    html += `<div class="form-group"><label>角丸 (px)</label><input type="number" id="prop-radius" value="${comp.style.borderRadius || 4}"></div>`;
-  }
-
-  if (comp.type === 'image') {
-    html += `<div class="form-group"><label>角丸 (px)</label><input type="number" id="prop-radius" value="${comp.style.borderRadius || 0}"></div>`;
-    html += `<div class="form-group"><label>画像を変更</label><button class="btn btn-secondary" id="prop-change-image" style="width:100%;">ファイルを選択</button></div>`;
-  }
-
-  html += `<div style="margin-top:16px;border-top:1px solid #2a2a4a;padding-top:12px;"><button class="btn btn-danger" id="prop-delete" style="width:100%;">このコンポーネントを削除</button></div>`;
-
-  container.innerHTML = html;
-
-  const bind = (id, field, transform = v => v) => {
-    const el = $(id);
-    if (!el) return;
-    el.addEventListener('input', () => {
-      const v = transform(el.value);
-      comp.style[field] = v;
-      scheduleSave();
-      renderGuiCanvas();
-    });
-  };
-  bind('prop-width', 'width', v => Math.max(10, parseInt(v) || 10));
-  bind('prop-height', 'height', v => Math.max(10, parseInt(v) || 10));
-  bind('prop-left', 'left', v => parseInt(v) || 0);
-  bind('prop-top', 'top', v => parseInt(v) || 0);
-  if (comp.type === 'heading' || comp.type === 'text') {
-    bind('prop-fontsize', 'fontSize', v => parseInt(v) || 16);
-    bind('prop-color', 'color');
-    bind('prop-bg', 'background');
-    bind('prop-textalign', 'textAlign');
-    bind('prop-lineheight', 'lineHeight', v => parseFloat(v) || 1.4);
-  }
-  if (comp.type === 'button') {
-    const contentEl = $('prop-content');
-    if (contentEl) contentEl.addEventListener('input', () => {
-      comp.content = contentEl.value;
-      scheduleSave();
-      renderGuiCanvas();
-    });
-    const hrefEl = $('prop-href');
-    if (hrefEl) hrefEl.addEventListener('input', () => {
-      comp.props.href = hrefEl.value;
-      scheduleSave();
-    });
-    bind('prop-bg', 'background');
-    bind('prop-color', 'color');
-    bind('prop-radius', 'borderRadius', v => parseInt(v) || 0);
-  }
-  if (comp.type === 'image') {
-    bind('prop-radius', 'borderRadius', v => parseInt(v) || 0);
-    const btn = $('prop-change-image');
-    if (btn) btn.addEventListener('click', () => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'image/*';
-      input.onchange = () => {
-        const file = input.files[0];
-        if (!file) return;
-        if (file.size > 10 * 1024 * 1024) { toast('10MBを超えています', true); return; }
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          comp.props.src = ev.target.result;
-          scheduleSave();
-          renderGuiCanvas();
-        };
-        reader.readAsDataURL(file);
-      };
-      input.click();
-    });
-  }
-
-  const delBtn = $('prop-delete');
-  if (delBtn) delBtn.addEventListener('click', () => {
-    if (!confirm('このコンポーネントを削除しますか？')) return;
-    state.guiComponents = state.guiComponents.filter(c => c.id !== comp.id);
-    if (state.selectedId === comp.id) deselectComponent();
+// ページタブ
+$('page-tabs').addEventListener('click', (e) => {
+  const delBtn = e.target.closest('[data-del-page]');
+  if (delBtn) {
+    e.stopPropagation();
+    const id = delBtn.dataset.delPage;
+    if (state.pages.length <= 1) { toast('最後のページは削除できません', true); return; }
+    if (!confirm('このページを削除しますか？')) return;
+    state.pages = state.pages.filter(p => p.id !== id);
+    if (state.currentPageId === id) state.currentPageId = state.pages[0].id;
+    state.selectedSectionId = null;
     scheduleSave();
-    renderGuiCanvas();
-  });
-}
-
-// ============================================================
-// GUI：プリセット適用
-// ============================================================
-function applyGuiPreset(presetId) {
-  const preset = GUI_PRESETS.find(p => p.id === presetId);
-  if (!preset) return;
-
-  state.guiComponents = preset.components.map(c => ({
-    ...c,
-    id: uuid(),
-    props: { ...(c.props || {}) },
-    style: { ...c.style },
-  }));
-  state.guiBackground = preset.background || '#ffffff';
-  state.selectedId = null;
-  scheduleSave();
-  renderGuiCanvas();
-  toast('プリセットを適用しました');
-}
-
-// ============================================================
-// GUI：HTML生成
-// ============================================================
-function generateHtmlFromGui() {
-  const canvasWidth = canvas.offsetWidth || 1000;
-  const canvasHeight = Math.max(canvas.offsetHeight, 800);
-  let inner = '';
-
-  state.guiComponents.forEach(comp => {
-    const s = comp.style;
-    let content = '';
-
-    if (comp.type === 'heading') {
-      content = `<h2 style="margin:0;font-size:${s.fontSize}px;color:${s.color};text-align:${s.textAlign};line-height:${s.lineHeight};background:${s.background || 'transparent'};">${escapeHtml(comp.content)}</h2>`;
-    } else if (comp.type === 'text') {
-      content = `<div style="margin:0;font-size:${s.fontSize}px;color:${s.color};text-align:${s.textAlign};line-height:${s.lineHeight};background:${s.background || 'transparent'};white-space:pre-wrap;">${escapeHtml(comp.content)}</div>`;
-    } else if (comp.type === 'image') {
-      content = `<img src="${comp.props.src}" style="width:100%;height:100%;object-fit:cover;border-radius:${s.borderRadius || 0}px;">`;
-    } else if (comp.type === 'button') {
-      content = `<a href="${escapeHtml(comp.props.href || '#')}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:${s.background};color:${s.color};border-radius:${s.borderRadius || 0}px;text-decoration:none;font-weight:bold;">${escapeHtml(comp.content || 'ボタン')}</a>`;
-    } else if (comp.type === 'divider') {
-      content = `<hr style="border:none;border-top:2px solid #ccc;margin:0;">`;
-    } else if (comp.type === 'spacer') {
-      content = '';
-    }
-
-    inner += `<div style="position:absolute;left:${s.left}px;top:${s.top}px;width:${s.width}px;height:${s.height}px;box-sizing:border-box;overflow:hidden;border-radius:${s.borderRadius || 0}px;">${content}</div>`;
-  });
-
-  return `<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${escapeHtml(state.slug || 'マイページ')}</title>
-<style>
-  html, body { margin: 0; padding: 0; background: ${state.guiBackground || '#ffffff'}; }
-  .canvas { position: relative; width: 100%; max-width: ${canvasWidth}px; min-height: ${canvasHeight}px; margin: 0 auto; }
-</style>
-</head>
-<body>
-  <div class="canvas" style="position:relative;width:100%;max-width:${canvasWidth}px;min-height:${canvasHeight}px;margin:0 auto;">${inner}</div>
-</body>
-</html>`;
-}
-
-// ============================================================
-// GUI：画像アップロード（公開時）
-// ============================================================
-async function uploadGuiImages() {
-  for (const comp of state.guiComponents) {
-    if (comp.type === 'image' && comp.props.src && comp.props.src.startsWith('data:')) {
-      try {
-        const ext = (comp.props.src.match(/^data:image\/([a-z]+);/) || [,'png'])[1];
-        const filename = 'image_' + comp.id + '.' + (ext === 'jpeg' ? 'jpg' : ext);
-        const res = await api('uploadSiteImage', {
-          slug: state.slug,
-          filename: filename,
-          dataUrl: comp.props.src,
-        });
-        comp.props.src = res.absoluteUrl;
-      } catch (e) {
-        console.warn('画像アップロード失敗:', e);
-        toast('一部の画像のアップロードに失敗しました: ' + e.message, true);
-      }
-    }
+    renderPageTabs(); renderSectionList(); renderPropertiesPanel();
+    return;
   }
+  const tab = e.target.closest('[data-page-id]');
+  if (tab) {
+    state.currentPageId = tab.dataset.pageId;
+    state.selectedSectionId = null;
+    renderPageTabs(); renderSectionList(); renderPropertiesPanel();
+    return;
+  }
+  if (e.target.id === 'add-page-btn') {
+    const name = prompt('新しいページ名を入力してください:', '新しいページ');
+    if (!name) return;
+    const id = 'p' + Math.random().toString(36).slice(2, 8);
+    state.pages.push({ id, name, sections: [] });
+    state.currentPageId = id;
+    state.selectedSectionId = null;
+    scheduleSave();
+    renderPageTabs(); renderSectionList(); renderPropertiesPanel();
+  }
+});
+
+// セクションリスト
+$('section-list').addEventListener('click', (e) => {
+  const upBtn = e.target.closest('[data-move-up]');
+  const downBtn = e.target.closest('[data-move-down]');
+  const delBtn = e.target.closest('[data-delete]');
+  const page = state.pages.find(p => p.id === state.currentPageId);
+
+  if (upBtn && page) {
+    e.stopPropagation();
+    const idx = page.sections.findIndex(s => s.id === upBtn.dataset.moveUp);
+    if (idx > 0) {
+      [page.sections[idx - 1], page.sections[idx]] = [page.sections[idx], page.sections[idx - 1]];
+      scheduleSave(); renderSectionList();
+    }
+    return;
+  }
+  if (downBtn && page) {
+    e.stopPropagation();
+    const idx = page.sections.findIndex(s => s.id === downBtn.dataset.moveDown);
+    if (idx >= 0 && idx < page.sections.length - 1) {
+      [page.sections[idx + 1], page.sections[idx]] = [page.sections[idx], page.sections[idx + 1]];
+      scheduleSave(); renderSectionList();
+    }
+    return;
+  }
+  if (delBtn && page) {
+    e.stopPropagation();
+    if (!confirm('このセクションを削除しますか？')) return;
+    page.sections = page.sections.filter(s => s.id !== delBtn.dataset.delete);
+    if (state.selectedSectionId === delBtn.dataset.delete) state.selectedSectionId = null;
+    scheduleSave(); renderSectionList(); renderPropertiesPanel();
+    return;
+  }
+  const block = e.target.closest('[data-section-id]');
+  if (block) {
+    state.selectedSectionId = block.dataset.sectionId;
+    renderSectionList();
+    renderPropertiesPanel();
+  }
+});
+
+// セクションパレット
+document.querySelector('.section-palette').addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-add]');
+  if (btn) addSection(btn.dataset.add);
+});
+
+// スラッグ
+$('slug-input').addEventListener('input', (e) => {
+  state.slug = e.target.value;
+  const err = validateSlugLocal(state.slug);
+  e.target.classList.toggle('valid', !err);
+  e.target.classList.toggle('invalid', !!err);
+  scheduleSave();
+});
+function validateSlugLocal(slug) {
+  if (!slug) return 'ページ名を入力してください';
+  if (!/^[a-z0-9][a-z0-9_-]{0,63}$/.test(slug)) return '英小文字・数字・-_ のみ、先頭は英数字、最大64文字';
+  const reserved = ['cpmcarshop.github.io', 'makerpage', 'admin', 'api', 'www', 'assets', 'icons'];
+  if (reserved.includes(slug)) return 'このページ名は使用できません';
+  return null;
 }
+$('slug-check-btn').addEventListener('click', async () => {
+  const err = validateSlugLocal(state.slug);
+  if (err) { toast(err, true); return; }
+  try {
+    showLoader();
+    const r = await api('checkPageName', { slug: state.slug });
+    toast(r.available ? '✓ このページ名は使えます' : r.reason, !r.available);
+  } catch (e) { toast(e.message, true); }
+  finally { hideLoader(); }
+});
+
+// テーマ選択
+$('theme-btn').addEventListener('click', () => {
+  const grid = $('theme-grid');
+  grid.innerHTML = Object.entries(THEMES).map(([id, t]) => `
+    <div class="theme-card ${id === state.themeId ? 'selected' : ''}" data-theme-id="${id}">
+      <div class="theme-thumb" style="background:${t.thumbBg};color:${t.thumbColor};">Aa</div>
+      <div class="theme-meta"><strong>${t.name}</strong><span>${t.desc}</span></div>
+    </div>
+  `).join('');
+  $('theme-modal').classList.add('active');
+});
+$('theme-grid').addEventListener('click', (e) => {
+  const card = e.target.closest('[data-theme-id]');
+  if (!card) return;
+  const id = card.dataset.themeId;
+  if (!confirm('テーマを変更すると、現在のページ構成が置き換わります。よろしいですか？')) return;
+  state.themeId = id;
+  state.pages = THEMES[id].defaultPages();
+  state.currentPageId = state.pages[0].id;
+  state.selectedSectionId = null;
+  scheduleSave();
+  renderPageTabs(); renderSectionList(); renderPropertiesPanel();
+  $('theme-modal').classList.remove('active');
+  toast('テーマを「' + THEMES[id].name + '」に変更しました');
+});
+$('theme-modal-close').addEventListener('click', () => $('theme-modal').classList.remove('active'));
+
+// プレビュー
+$('preview-btn').addEventListener('click', async () => {
+  let html;
+  if (state.mode === 'gui') {
+    showLoader();
+    try { await uploadGuiImages(); } catch (e) {}
+    hideLoader();
+    html = generateSiteHtml();
+  } else {
+    html = state.html;
+  }
+  $('preview-iframe').srcdoc = html;
+  $('preview-modal').classList.add('active');
+});
+$('preview-modal-close').addEventListener('click', () => $('preview-modal').classList.remove('active'));
 
 // ============================================================
 // 公開
 // ============================================================
+async function uploadGuiImages() {
+  const upload = async (src) => {
+    if (!src || !src.startsWith('data:')) return src;
+    const ext = (src.match(/^data:image\/([a-z]+);/) || [,'png'])[1];
+    const filename = 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2,6) + '.' + (ext === 'jpeg' ? 'jpg' : ext);
+    const res = await api('uploadSiteImage', { slug: state.slug, filename, dataUrl: src });
+    return res.absoluteUrl;
+  };
+
+  for (const page of state.pages) {
+    for (const sec of page.sections) {
+      if (sec.type === 'image' && sec.props.src) {
+        sec.props.src = await upload(sec.props.src);
+      }
+      if (sec.type === 'hero' && sec.props.bgImage) {
+        sec.props.bgImage = await upload(sec.props.bgImage);
+      }
+      if (sec.type === 'gallery' && sec.props.images) {
+        sec.props.images = await Promise.all(sec.props.images.map(upload));
+      }
+    }
+  }
+}
+
 $('publish-btn').addEventListener('click', async () => {
   const slugErr = validateSlugLocal(state.slug);
   if (slugErr) { toast(slugErr, true); return; }
 
   let html;
-  if (state.mode === 'manual') {
+  if (state.mode === 'gui') {
+    if (state.pages.every(p => p.sections.length === 0)) { toast('セクションがありません', true); return; }
+    showLoader();
+    try { await uploadGuiImages(); }
+    catch (e) { hideLoader(); toast('画像アップロード失敗: ' + e.message, true); return; }
+    hideLoader();
+    html = generateSiteHtml();
+  } else {
     if (!state.html.trim()) { toast('HTMLが空です', true); return; }
     html = state.html;
-  } else {
-    if (state.guiComponents.length === 0) { toast('コンポーネントがありません', true); return; }
-    showLoader();
-    try {
-      await uploadGuiImages();
-    } catch (e) {
-      hideLoader();
-      toast('画像のアップロードに失敗しました', true);
-      return;
-    }
-    hideLoader();
-    html = generateHtmlFromGui();
   }
 
-  if (!confirm(`ページ名「${state.slug}」で公開します。\n公開URL: https://cpmcarshop.github.io/${state.slug}/\n\n初回は反映まで1〜3分かかります。よろしいですか？`)) return;
+  if (!confirm(`ページ名「${state.slug}」で公開します。\nURL: https://cpmcarshop.github.io/${state.slug}/\n\n初回は1〜3分かかります。よろしいですか？`)) return;
 
   try {
     showLoader();
     await api('publishMakerSite', { slug: state.slug, html, mode: state.mode });
     clearDraft();
     state.isDirty = false;
-    toast('✓ 公開しました。反映まで1〜3分お待ちください');
+    toast('✓ 公開しました（反映まで1〜3分）');
     try { state.site = await api('getMySite'); renderSiteInfo(); $('slug-input').disabled = true; } catch (e) {}
   } catch (e) { toast('公開失敗: ' + e.message, true); }
   finally { hideLoader(); }
 });
 
-// ============================================================
 // 削除
-// ============================================================
 $('delete-btn').addEventListener('click', async () => {
   if (!state.site || !state.site.hasSite) return;
   const slug = state.site.slug;
@@ -1186,27 +1319,23 @@ $('delete-btn').addEventListener('click', async () => {
     await api('deleteMakerSite');
     toast('サイトを削除しました');
     state.site = { hasSite: false }; state.slug = '';
-    state.html = PRESETS[0].html;
-    state.guiComponents = []; state.guiBackground = '#ffffff';
-    $('slug-input').value = ''; $('slug-input').disabled = false; $('slug-input').classList.remove('valid', 'invalid');
-    $('html-editor').value = state.html;
+    state.pages = THEMES.racing.defaultPages();
+    state.currentPageId = state.pages[0].id;
+    state.themeId = 'racing';
+    $('slug-input').value = ''; $('slug-input').disabled = false;
     $('delete-btn').style.display = 'none'; $('site-info-bar').style.display = 'none';
     clearDraft();
-    renderGuiCanvas();
-    updatePreview();
+    renderPageTabs(); renderSectionList(); renderPropertiesPanel();
   } catch (e) { toast('削除失敗: ' + e.message, true); }
   finally { hideLoader(); }
 });
 
-// ============================================================
 // 認証
-// ============================================================
 onAuthStateChanged(auth, async (user) => {
   state.user = user;
   if (user) await initAfterLogin(user);
   else showScreen('login');
 });
-
 $('login-google').addEventListener('click', async () => {
   try { await signInWithPopup(auth, googleProvider); }
   catch (e) { if (e.code !== 'auth/popup-closed-by-user') toast('ログイン失敗: ' + e.message, true); }
@@ -1216,162 +1345,11 @@ $('logout-btn').addEventListener('click', async () => {
   if (state.isDirty && !confirm('保存されていない変更があります。ログアウトしますか？')) return;
   await signOut(auth);
 });
-
-// ============================================================
-// 手動モード：エディタイベント
-// ============================================================
-$('html-editor').addEventListener('input', (e) => {
-  state.html = e.target.value;
-  updatePreview();
-  scheduleSave();
-});
-$('slug-input').addEventListener('input', (e) => {
-  state.slug = e.target.value;
-  const err = validateSlugLocal(state.slug);
-  e.target.classList.toggle('valid', !err);
-  e.target.classList.toggle('invalid', !!err);
-  scheduleSave();
-});
-$('slug-check-btn').addEventListener('click', async () => {
-  const err = validateSlugLocal(state.slug);
-  if (err) { toast(err, true); return; }
-  try {
-    showLoader();
-    const r = await api('checkPageName', { slug: state.slug });
-    toast(r.available ? (r.isUpdate ? '✓ 現在のページ名です' : '✓ このページ名は使えます') : r.reason, !r.available);
-  } catch (e) { toast(e.message, true); }
-  finally { hideLoader(); }
-});
-
-// ============================================================
-// モバイルタブ
-// ============================================================
-function switchMobilePane(pane) {
-  document.querySelectorAll('#mobile-tabs button').forEach(b => b.classList.toggle('active', b.dataset.pane === pane));
-  if (window.innerWidth <= 768) {
-    $('pane-editor').classList.toggle('hidden-on-mobile', pane !== 'editor');
-    $('pane-preview').classList.toggle('hidden-on-mobile', pane !== 'preview');
-  }
-}
-$('mobile-tabs').addEventListener('click', (e) => {
-  const btn = e.target.closest('button[data-pane]');
-  if (btn) switchMobilePane(btn.dataset.pane);
-});
-window.addEventListener('resize', () => {
-  if (window.innerWidth > 768) {
-    $('pane-editor').classList.remove('hidden-on-mobile');
-    $('pane-preview').classList.remove('hidden-on-mobile');
-  } else {
-    const active = document.querySelector('#mobile-tabs button.active')?.dataset.pane || 'editor';
-    switchMobilePane(active);
-  }
-});
-window.dispatchEvent(new Event('resize'));
+$('retry-maker-check')?.addEventListener('click', () => { if (state.user) initAfterLogin(state.user); });
 
 window.addEventListener('beforeunload', (e) => {
   if (state.isDirty) { e.preventDefault(); e.returnValue = ''; }
 });
-
-// ============================================================
-// プリセットモーダル
-// ============================================================
-$('preset-btn').addEventListener('click', () => {
-  const list = state.mode === 'manual' ? PRESETS : GUI_PRESETS;
-  $('presets-list').innerHTML = list.map(p => `<div class="preset-item" data-preset="${p.id}"><strong>${escapeHtml(p.name)}</strong><span>${escapeHtml(p.desc)}</span></div>`).join('');
-  $('preset-modal').classList.add('active');
-});
-$('presets-list').addEventListener('click', (e) => {
-  const item = e.target.closest('[data-preset]');
-  if (!item) return;
-  const presetId = item.dataset.preset;
-
-  if (state.mode === 'manual') {
-    const preset = PRESETS.find(p => p.id === presetId);
-    if (!preset) return;
-    if (state.html && state.html !== PRESETS[0].html && !confirm('現在の内容を置き換えます。よろしいですか？')) return;
-    state.html = preset.html;
-    $('html-editor').value = preset.html;
-    updatePreview();
-    scheduleSave();
-  } else {
-    if (state.guiComponents.length > 0 && !confirm('現在の内容を置き換えます。よろしいですか？')) return;
-    applyGuiPreset(presetId);
-  }
-
-  $('preset-modal').classList.remove('active');
-});
-$('preset-modal-close').addEventListener('click', () => $('preset-modal').classList.remove('active'));
-
-// ============================================================
-// 画像アップロードモーダル（手動モード用）
-// ============================================================
-$('image-btn')?.addEventListener('click', () => {
-  const err = validateSlugLocal(state.slug);
-  if (err) { toast('先にページ名を入力してください: ' + err, true); return; }
-  $('upload-list').innerHTML = '';
-  $('image-modal').classList.add('active');
-});
-$('image-modal-close').addEventListener('click', () => $('image-modal').classList.remove('active'));
-
-const dropZone = $('drop-zone');
-const imageInput = $('image-input');
-if (dropZone && imageInput) {
-  dropZone.addEventListener('click', () => imageInput.click());
-  dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
-  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-  dropZone.addEventListener('drop', (e) => {
-    e.preventDefault(); dropZone.classList.remove('dragover');
-    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-    if (files.length) handleFiles(files);
-  });
-  imageInput.addEventListener('change', () => {
-    if (imageInput.files.length) handleFiles(Array.from(imageInput.files));
-    imageInput.value = '';
-  });
-}
-
-async function handleFiles(files) {
-  const list = $('upload-list');
-  for (const file of files) {
-    if (file.size > 10 * 1024 * 1024) { addUploadItem(list, file.name, 'error', '10MB超'); continue; }
-    const item = addUploadItem(list, file.name, '', 'アップロード中...');
-    try {
-      const dataUrl = await readAsDataURL(file);
-      const r = await api('uploadSiteImage', { slug: state.slug, filename: file.name, dataUrl });
-      item.classList.add('done');
-      item.querySelector('.status').textContent = '完了';
-      const tag = `<img src="${r.absoluteUrl}" alt="${escapeHtml(file.name)}" style="max-width:100%;">`;
-      insertAtCursor($('html-editor'), tag);
-      state.html = $('html-editor').value;
-      updatePreview();
-      scheduleSave();
-    } catch (e) {
-      item.classList.add('error');
-      item.querySelector('.status').textContent = e.message;
-    }
-  }
-}
-function addUploadItem(container, name, cls, status) {
-  const div = document.createElement('div');
-  div.className = 'upload-item ' + cls;
-  div.innerHTML = `<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(name)}</span><span class="status">${escapeHtml(status)}</span>`;
-  container.appendChild(div);
-  return div;
-}
-function readAsDataURL(file) {
-  return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(r.result);
-    r.onerror = () => reject(r.error);
-    r.readAsDataURL(file);
-  });
-}
-function insertAtCursor(textarea, text) {
-  const s = textarea.selectionStart, e = textarea.selectionEnd;
-  textarea.value = textarea.value.substring(0, s) + text + textarea.value.substring(e);
-  textarea.selectionStart = textarea.selectionEnd = s + text.length;
-  textarea.focus();
-}
 </script>
 </body>
 </html>
