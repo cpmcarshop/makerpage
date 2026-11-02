@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>メーカーページ作成 - 架空車街</title>
+<style>
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+body { font-family: -apple-system, 'Segoe UI', 'Hiragino Sans', sans-serif; background: #0a0c1b; color: #e0e0e0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+.screen { display: none; height: 100%; flex-direction: column; }
+.screen.active { display: flex; }
+#login-screen, #not-maker-screen { align-items: center; justify-content: center; padding: 20px; }
+.login-box, .not-maker-box { background: #16213e; padding: 40px 30px; border-radius: 12px; max-width: 400px; width: 100%; text-align: center; }
+.login-box { border: 1px solid #00d2ff; }
+.login-box h1 { color: #00d2ff; margin: 0 0 20px; }
+.not-maker-box { border: 1px solid #e94560; }
+.not-maker-box h2 { color: #e94560; margin: 0 0 16px; }
+
+.toolbar { background: #16213e; border-bottom: 1px solid #2a2a4a; padding: 8px 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex-shrink: 0; }
+.toolbar .brand { font-weight: bold; color: #00d2ff; margin-right: 8px; }
+.toolbar input { padding: 6px 10px; background: #0a0c1b; border: 1px solid #333; color: #fff; border-radius: 4px; font-family: inherit; min-width: 150px; }
+.toolbar input.valid { border-color: #4caf50; }
+.toolbar input.invalid { border-color: #e94560; }
+
+button.btn { padding: 8px 16px; background: #00d2ff; color: #000; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-family: inherit; font-size: 0.9rem; touch-action: manipulation; text-decoration: none; display: inline-block; }
+button.btn:hover { background: #00a2c7; }
+button.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+button.btn-secondary { background: #444; color: #fff; }
+button.btn-secondary:hover { background: #555; }
+button.btn-danger { background: #e94560; color: #fff; }
+button.btn-danger:hover { background: #c73050; }
+
+.mode-tabs { display: flex; background: #0a0c1b; border-bottom: 1px solid #2a2a4a; flex-shrink: 0; }
+.mode-tabs button { flex: 1; padding: 10px; background: transparent; color: #888; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-family: inherit; font-size: 0.9rem; }
+.mode-tabs button.active { color: #00d2ff; border-bottom-color: #00d2ff; background: rgba(0,210,255,0.05); }
+.mode-tabs button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.editor-area { flex: 1; display: flex; overflow: hidden; min-height: 0; }
+.manual-container { display: flex; width: 100%; height: 100%; }
+.manual-input { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.manual-input textarea { flex: 1; width: 100%; padding: 16px; background: #0a0c1b; color: #e0e0e0; border: none; resize: none; font-family: 'SF Mono', Consolas, monospace; font-size: 13px; line-height: 1.6; outline: none; min-height: 0; }
+.manual-preview { flex: 1; min-width: 0; background: #fff; border-left: 1px solid #2a2a4a; }
+.manual-preview iframe { width: 100%; height: 100%; border: none; display: block; }
+
+.mobile-tabs { display: none; background: #0a0c1b; border-bottom: 1px solid #2a2a4a; flex-shrink: 0; }
+.mobile-tabs button { flex: 1; padding: 10px; background: transparent; color: #888; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-family: inherit; }
+.mobile-tabs button.active { color: #00d2ff; border-bottom-color: #00d2ff; }
+
+@media (max-width: 768px) {
+  .toolbar { padding: 6px 8px; gap: 6px; }
+  .toolbar input { min-width: 100px; }
+  .toolbar .btn { padding: 6px 10px; font-size: 0.8rem; }
+  .manual-container { flex-direction: column; }
+  .manual-preview { border-left: none; border-top: 1px solid #2a2a4a; }
+  .manual-input.hidden-on-mobile, .manual-preview.hidden-on-mobile { display: none; }
+  .mobile-tabs { display: flex; }
+}
+
+.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+.modal.active { display: flex; }
+.modal-content { background: #16213e; border: 1px solid #00d2ff; border-radius: 8px; padding: 24px; max-width: 600px; width: 100%; max-height: 85vh; overflow-y: auto; }
+.modal-content h3 { margin: 0 0 16px; color: #00d2ff; }
+
+.drop-zone { border: 2px dashed #444; border-radius: 8px; padding: 40px 20px; text-align: center; color: #888; cursor: pointer; transition: all 0.2s; }
+.drop-zone:hover, .drop-zone.dragover { border-color: #00d2ff; background: rgba(0,210,255,0.05); color: #00d2ff; }
+.drop-zone input[type=file] { display: none; }
+.upload-list { margin-top: 16px; }
+.upload-item { display: flex; align-items: center; gap: 8px; padding: 8px; background: #0a0c1b; border-radius: 4px; margin-bottom: 8px; font-size: 0.85rem; }
+.upload-item .status { color: #888; }
+.upload-item.done .status { color: #4caf50; }
+.upload-item.error .status { color: #e94560; }
+
+#toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: #16213e; color: #fff; padding: 12px 24px; border-radius: 8px; border: 1px solid #00d2ff; z-index: 2000; transition: transform 0.3s; max-width: 90%; font-size: 0.9rem; }
+#toast.show { transform: translateX(-50%) translateY(0); }
+#toast.error { border-color: #e94560; }
+
+.presets-list { display: grid; gap: 12px; }
+.preset-item { padding: 16px; background: #0a0c1b; border: 1px solid #333; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+.preset-item:hover { border-color: #00d2ff; background: rgba(0,210,255,0.05); }
+.preset-item strong { color: #00d2ff; display: block; margin-bottom: 4px; }
+.preset-item span { font-size: 0.85rem; color: #aaa; }
+
+.site-info { background: #16213e; padding: 8px 12px; font-size: 0.8rem; border-bottom: 1px solid #2a2a4a; color: #aaa; flex-shrink: 0; }
+.site-info a { color: #00d2ff; }
+.site-info .status-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; margin-left: 8px; }
+.site-info .status-badge.published { background: #4caf50; color: #fff; }
+.site-info .status-badge.draft { background: #ff9800; color: #000; }
+
+.loader-overlay { position: fixed; inset: 0; background: rgba(10,12,27,0.8); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 3000; }
+.loader-overlay.active { display: flex; }
+.loader-overlay .spinner { width: 60px; height: 60px; border: 4px solid #333; border-top-color: #00d2ff; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div id="loader" class="loader-overlay"><div class="spinner"></div></div>
+
+<div id="login-screen" class="screen">
+  <div class="login-box">
+    <h1>メーカーページ作成</h1>
+    <p style="color:#aaa; margin-bottom:24px;">架空車街のメーカーアカウントでログインしてください</p>
+    <button class="btn" id="login-google" style="width:100%; margin-bottom:10px;">Googleでログイン</button>
+    <a href="https://cpmcarshop.github.io/" class="btn btn-secondary" style="width:100%;">架空車街に戻る</a>
+  </div>
+</div>
+
+<div id="not-maker-screen" class="screen">
+  <div class="not-maker-box">
+    <h2>メーカー登録が必要です</h2>
+    <p style="color:#aaa; margin-bottom:20px;">メーカーページを作成するには、まず架空車街でメーカー登録を行ってください。</p>
+    <a href="https://cpmcarshop.github.io/" class="btn" style="margin-bottom:10px;">架空車街に戻る</a>
+    <button class="btn btn-secondary" id="logout-from-notmaker" style="width:100%;">ログアウト</button>
+  </div>
+</div>
+
+<div id="editor-screen" class="screen">
+  <div class="toolbar">
+    <span class="brand">メーカーページ</span>
+    <input type="text" id="slug-input" placeholder="ページ名" maxlength="64">
+    <button class="btn btn-secondary" id="slug-check-btn">確認</button>
+    <button class="btn btn-secondary" id="preset-btn">📄 プリセット</button>
+    <button class="btn btn-secondary" id="image-btn">🖼 画像</button>
+    <button class="btn" id="publish-btn">公開</button>
+    <button class="btn btn-danger" id="delete-btn" style="display:none;">削除</button>
+    <button class="btn btn-secondary" id="logout-btn" style="margin-left:auto;">ログアウト</button>
+  </div>
+  <div id="site-info-bar" class="site-info" style="display:none;"></div>
+  <div class="mode-tabs">
+    <button data-mode="manual" class="active">手動（HTML）</button>
+    <button data-mode="gui" disabled title="Phase 3 で実装予定">GUI（準備中）</button>
+  </div>
+  <div class="mobile-tabs" id="mobile-tabs">
+    <button data-pane="editor" class="active">✏️ 編集</button>
+    <button data-pane="preview">👁 プレビュー</button>
+  </div>
+  <div class="editor-area">
+    <div class="manual-container">
+      <div class="manual-input" id="pane-editor">
+        <textarea id="html-editor" spellcheck="false"></textarea>
+      </div>
+      <div class="manual-preview" id="pane-preview">
+        <iframe id="preview-frame" sandbox="allow-scripts allow-forms allow-popups"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="image-modal" class="modal">
+  <div class="modal-content">
+    <h3>画像をアップロード</h3>
+    <p style="color:#888; font-size:0.85rem;">1枚10MBまで。GitHubリポジトリに保存されます。</p>
+    <div class="drop-zone" id="drop-zone">
+      <input type="file" id="image-input" accept="image/*" multiple>
+      <div style="font-size:2rem; margin-bottom:8px;">🖼</div>
+      <div>クリックまたはドロップで画像を選択</div>
+    </div>
+    <div class="upload-list" id="upload-list"></div>
+    <div style="text-align:right; margin-top:16px;">
+      <button class="btn btn-secondary" id="image-modal-close">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<div id="preset-modal" class="modal">
+  <div class="modal-content">
+    <h3>プリセット</h3>
+    <p style="color:#888; font-size:0.85rem; margin-bottom:16px;">⚠️ 選択すると現在の内容が置き換わります。</p>
+    <div class="presets-list" id="presets-list"></div>
+    <div style="text-align:right; margin-top:16px;">
+      <button class="btn btn-secondary" id="preset-modal-close">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+// ============================================================
+// 設定
+// ============================================================
+const WORKER_URL = 'https://makerpage.paapaapaa810.workers.dev';
+const MAIN_WORKER_URL = 'https://kakuusha-gai.paapaapaa810.workers.dev';
+const STORAGE_KEY = 'makerpage_draft';
+const SAVE_DEBOUNCE = 1500;
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCffFYNOEcrGu2GKgSiE6q6KgGkCtxJEFw",
+  authDomain: "kakuusha-gai.firebaseapp.com",
+  projectId: "kakuusha-gai",
+  storageBucket: "kakuusha-gai.firebasestorage.app",
+  messagingSenderId: "460103021741",
+  appId: "1:460103021741:web:40ed966e261ed657e80224"
+};
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged, signOut,
+  GoogleAuthProvider, signInWithPopup,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
+
+// ============================================================
+// 状態
+// ============================================================
+const state = { user: null, maker: null, site: null, slug: '', html: '', isDirty: false };
+
+// ============================================================
+// ユーティリティ
+// ============================================================
+const $ = (id) => document.getElementById(id);
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+  $(name + '-screen').classList.add('active');
+}
+function showLoader() { $('loader').classList.add('active'); }
+function hideLoader() { $('loader').classList.remove('active'); }
+
+let toastTimer = null;
+function toast(msg, isError = false) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.className = isError ? 'error show' : 'show';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
+}
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+}
+
+// ============================================================
+// API
+// ============================================================
+async function api(action, payload = {}) {
+  if (!state.user) throw new Error('ログインしていません');
+  const token = await state.user.getIdToken();
+  const res = await fetch(WORKER_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    body: JSON.stringify({ action, payload }),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.error || 'APIエラー');
+  return data.data;
+}
+
+async function getMakerFromMain(uid) {
+  try {
+    const res = await fetch(MAIN_WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'getMakerByUid', payload: { uid } }),
+    });
+    const data = await res.json();
+    return data.success ? data.data : null;
+  } catch (e) { return null; }
+}
+
+// ============================================================
+// プリセット
+// ============================================================
+const PRESETS = [
+  { id:'blank', name:'ブランク', desc:'まっさらな HTML5 テンプレート', html:`<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>私のページ</title>
+<style>body{font-family:sans-serif;max-width:800px;margin:40px auto;padding:20px;line-height:1.6}h1{color:#333}</style>
+</head>
+<body><h1>ようこそ</h1><p>ここにHTMLを書いてください。</p></body>
+</html>` },
+  { id:'profile', name:'プロフィール', desc:'アイコン・名前・自己紹介のカード', html:`<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>プロフィール</title>
+<style>*{box-sizing:border-box}body{font-family:-apple-system,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;margin:0;display:flex;align-items:center;justify-content:center;padding:20px}.card{background:#fff;border-radius:20px;padding:40px 30px;max-width:400px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}.avatar{width:120px;height:120px;border-radius:50%;margin:0 auto 20px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:3rem;border:4px solid #667eea}h1{margin:0 0 8px;color:#333;font-size:1.6rem}.title{color:#667eea;font-weight:600;margin-bottom:20px}.bio{color:#666;line-height:1.7;margin-bottom:24px}.links a{display:inline-block;margin:4px;padding:8px 20px;background:#667eea;color:#fff;text-decoration:none;border-radius:20px;font-size:.9rem}</style>
+</head><body><div class="card"><div class="avatar">👤</div><h1>あなたの名前</h1><div class="title">肩書き・役職</div><p class="bio">ここに自己紹介を書いてください。</p><div class="links"><a href="#">Twitter</a><a href="#">リンク</a></div></div></body></html>` },
+  { id:'showcase', name:'ショーケース', desc:'作品・商品を並べるグリッド', html:`<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ショーケース</title>
+<style>*{box-sizing:border-box}body{font-family:-apple-system,sans-serif;background:#f5f5f7;margin:0;padding:40px 20px}.container{max-width:1000px;margin:0 auto}header{text-align:center;margin-bottom:40px}h1{color:#1d1d1f;font-size:2rem;margin:0 0 12px}.subtitle{color:#86868b;font-size:1.1rem}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px}.item{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);transition:.2s}.item:hover{transform:translateY(-4px)}.item-img{width:100%;height:200px;background:linear-gradient(135deg,#ddd,#bbb);display:flex;align-items:center;justify-content:center;font-size:2rem}.item-body{padding:20px}.item-body h3{margin:0 0 8px;color:#1d1d1f}.item-body p{margin:0;color:#86868b;font-size:.9rem}</style>
+</head><body><div class="container"><header><h1>ショーケース</h1><p class="subtitle">私の作品コレクション</p></header><div class="grid"><div class="item"><div class="item-img">📦</div><div class="item-body"><h3>アイテム1</h3><p>説明文</p></div></div><div class="item"><div class="item-img">📦</div><div class="item-body"><h3>アイテム2</h3><p>説明文</p></div></div><div class="item"><div class="item-img">📦</div><div class="item-body"><h3>アイテム3</h3><p>説明文</p></div></div></div></div></body></html>` },
+  { id:'blog', name:'ブログ風', desc:'記事を並べるレイアウト', html:`<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ブログ</title>
+<style>*{box-sizing:border-box}body{font-family:'Hiragino Mincho ProN',Georgia,serif;background:#fafafa;color:#333;margin:0;line-height:1.8}header{background:#333;color:#fff;padding:40px 20px;text-align:center}header h1{margin:0;font-size:2rem;letter-spacing:2px}header p{margin:8px 0 0;opacity:.8}main{max-width:700px;margin:40px auto;padding:0 20px}article{background:#fff;padding:30px;border-radius:8px;margin-bottom:24px;box-shadow:0 2px 8px rgba(0,0,0,.05)}article h2{margin:0 0 8px}article .meta{color:#999;font-size:.85rem;margin-bottom:16px}article a{color:#667eea;text-decoration:none;display:inline-block;margin-top:16px}</style>
+</head><body><header><h1>私のブログ</h1><p>日々の記録</p></header><main><article><h2>最初の記事</h2><div class="meta">2026年1月1日</div><p>ここに記事の本文を書きます。</p><a href="#">続きを読む →</a></article><article><h2>2つ目の記事</h2><div class="meta">2026年1月2日</div><p>2つ目の記事の本文です。</p><a href="#">続きを読む →</a></article></main></body></html>` },
+  { id:'landing', name:'ランディング', desc:'キャッチコピーとCTAのシンプルLP', html:`<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ランディング</title>
+<style>*{box-sizing:border-box}body{font-family:-apple-system,sans-serif;margin:0;background:#000;color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(circle at 50% 0%,#1a1a3e 0%,#000 70%)}.hero{text-align:center;max-width:700px}.hero h1{font-size:clamp(2rem,6vw,4rem);margin:0 0 24px;background:linear-gradient(135deg,#667eea,#f093fb);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2}.hero p{font-size:1.2rem;color:#aaa;margin-bottom:40px;line-height:1.7}.cta{display:inline-block;padding:16px 40px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;text-decoration:none;border-radius:50px;font-weight:bold;font-size:1.1rem;box-shadow:0 8px 30px rgba(102,126,234,.5)}</style>
+</head><body><div class="hero"><h1>革新的な何か</h1><p>ここにサービスの説明を書きます。</p><a href="#" class="cta">今すぐ始める →</a></div></body></html>` },
+];
+
+// ============================================================
+// localStorage
+// ============================================================
+function saveDraft() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ slug: state.slug, html: state.html, savedAt: Date.now() }));
+    state.isDirty = false;
+  } catch (e) {}
+}
+function loadDraft() {
+  try { const r = localStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : null; } catch (e) { return null; }
+}
+function clearDraft() { try { localStorage.removeItem(STORAGE_KEY); } catch (e) {} }
+function scheduleSave() {
+  state.isDirty = true;
+  clearTimeout(scheduleSave._t);
+  scheduleSave._t = setTimeout(saveDraft, SAVE_DEBOUNCE);
+}
+
+// ============================================================
+// プレビュー
+// ============================================================
+let previewTimer = null;
+function updatePreview() {
+  clearTimeout(previewTimer);
+  previewTimer = setTimeout(() => {
+    const frame = $('preview-frame');
+    frame.srcdoc = state.html || '<p style="padding:20px;color:#888;">プレビューする内容がありません</p>';
+  }, 300);
+}
+
+// ============================================================
+// スラッグ検証
+// ============================================================
+function validateSlugLocal(slug) {
+  if (!slug) return 'ページ名を入力してください';
+  if (!/^[a-z0-9][a-z0-9_-]{0,63}$/.test(slug)) return '英小文字・数字・-_ のみ、先頭は英数字、最大64文字';
+  const reserved = ['cpmcarshop.github.io', 'makerpage', 'admin', 'api', 'www', 'assets', 'icons'];
+  if (reserved.includes(slug)) return 'このページ名は使用できません';
+  return null;
+}
+
+// ============================================================
+// サイト情報
+// ============================================================
+function renderSiteInfo() {
+  const bar = $('site-info-bar');
+  if (!state.site || !state.site.hasSite) { bar.style.display = 'none'; return; }
+  bar.style.display = 'block';
+  const s = state.site;
+  const cls = s.published ? 'published' : 'draft';
+  const txt = s.published ? '公開中' : '下書き（未公開）';
+  bar.innerHTML = `ページ名: <strong>${escapeHtml(s.slug)}</strong><span class="status-badge ${cls}">${txt}</span>${s.published ? ` | <a href="${s.publicUrl}" target="_blank" rel="noopener">公開URL</a> | <a href="${s.previewUrl}" target="_blank" rel="noopener">直接表示</a>` : ''}`;
+  $('delete-btn').style.display = 'inline-block';
+}
+
+// ============================================================
+// 初期化（ログイン後）
+// ============================================================
+async function initAfterLogin(user) {
+  showLoader();
+  try {
+    const maker = await getMakerFromMain(user.uid);
+    if (!maker) { showScreen('not-maker'); return; }
+    state.maker = maker;
+
+    try { state.site = await api('getMySite'); }
+    catch (e) { state.site = { hasSite: false }; }
+
+    if (state.site.hasSite) {
+      state.slug = state.site.slug;
+      $('slug-input').value = state.slug;
+      $('slug-input').disabled = true;
+      $('slug-input').classList.add('valid');
+      const draft = loadDraft();
+      state.html = (draft && draft.slug === state.slug) ? draft.html : PRESETS[0].html;
+    } else {
+      const draft = loadDraft();
+      if (draft) { state.slug = draft.slug || ''; state.html = draft.html || PRESETS[0].html; $('slug-input').value = state.slug; }
+      else { state.html = PRESETS[0].html; }
+    }
+
+    $('html-editor').value = state.html;
+    updatePreview();
+    renderSiteInfo();
+    showScreen('editor');
+  } catch (e) {
+    toast('初期化エラー: ' + e.message, true);
+  } finally { hideLoader(); }
+}
+
+// ============================================================
+// 認証
+// ============================================================
+onAuthStateChanged(auth, async (user) => {
+  state.user = user;
+  if (user) await initAfterLogin(user);
+  else showScreen('login');
+});
+
+$('login-google').addEventListener('click', async () => {
+  try { await signInWithPopup(auth, googleProvider); }
+  catch (e) { if (e.code !== 'auth/popup-closed-by-user') toast('ログイン失敗: ' + e.message, true); }
+});
+$('logout-from-notmaker').addEventListener('click', () => signOut(auth));
+$('logout-btn').addEventListener('click', async () => {
+  if (state.isDirty && !confirm('保存されていない変更があります。ログアウトしますか？')) return;
+  await signOut(auth);
+});
+
+// ============================================================
+// エディタ
+// ============================================================
+$('html-editor').addEventListener('input', (e) => {
+  state.html = e.target.value;
+  updatePreview();
+  scheduleSave();
+});
+$('slug-input').addEventListener('input', (e) => {
+  state.slug = e.target.value;
+  const err = validateSlugLocal(state.slug);
+  e.target.classList.toggle('valid', !err);
+  e.target.classList.toggle('invalid', !!err);
+  scheduleSave();
+});
+$('slug-check-btn').addEventListener('click', async () => {
+  const err = validateSlugLocal(state.slug);
+  if (err) { toast(err, true); return; }
+  try {
+    showLoader();
+    const r = await api('checkPageName', { slug: state.slug });
+    toast(r.available ? (r.isUpdate ? '✓ 現在のページ名です' : '✓ このページ名は使えます') : r.reason, !r.available);
+  } catch (e) { toast(e.message, true); }
+  finally { hideLoader(); }
+});
+
+// モバイルタブ
+function switchMobilePane(pane) {
+  document.querySelectorAll('#mobile-tabs button').forEach(b => b.classList.toggle('active', b.dataset.pane === pane));
+  if (window.innerWidth <= 768) {
+    $('pane-editor').classList.toggle('hidden-on-mobile', pane !== 'editor');
+    $('pane-preview').classList.toggle('hidden-on-mobile', pane !== 'preview');
+  }
+}
+$('mobile-tabs').addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-pane]');
+  if (btn) switchMobilePane(btn.dataset.pane);
+});
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 768) {
+    $('pane-editor').classList.remove('hidden-on-mobile');
+    $('pane-preview').classList.remove('hidden-on-mobile');
+  } else {
+    const active = document.querySelector('#mobile-tabs button.active')?.dataset.pane || 'editor';
+    switchMobilePane(active);
+  }
+});
+window.dispatchEvent(new Event('resize'));
+
+window.addEventListener('beforeunload', (e) => {
+  if (state.isDirty) { e.preventDefault(); e.returnValue = ''; }
+});
+
+// ============================================================
+// プリセット
+// ============================================================
+$('preset-btn').addEventListener('click', () => {
+  $('presets-list').innerHTML = PRESETS.map(p => `<div class="preset-item" data-preset="${p.id}"><strong>${escapeHtml(p.name)}</strong><span>${escapeHtml(p.desc)}</span></div>`).join('');
+  $('preset-modal').classList.add('active');
+});
+$('presets-list').addEventListener('click', (e) => {
+  const item = e.target.closest('[data-preset]');
+  if (!item) return;
+  const preset = PRESETS.find(p => p.id === item.dataset.preset);
+  if (state.html && state.html !== PRESETS[0].html && !confirm('現在の内容を置き換えます。よろしいですか？')) return;
+  state.html = preset.html;
+  $('html-editor').value = preset.html;
+  updatePreview();
+  scheduleSave();
+  $('preset-modal').classList.remove('active');
+  toast('プリセットを適用しました');
+});
+$('preset-modal-close').addEventListener('click', () => $('preset-modal').classList.remove('active'));
+
+// ============================================================
+// 画像
+// ============================================================
+$('image-btn').addEventListener('click', () => {
+  const err = validateSlugLocal(state.slug);
+  if (err) { toast('先にページ名を入力してください: ' + err, true); return; }
+  $('upload-list').innerHTML = '';
+  $('image-modal').classList.add('active');
+});
+$('image-modal-close').addEventListener('click', () => $('image-modal').classList.remove('active'));
+
+const dropZone = $('drop-zone');
+const imageInput = $('image-input');
+dropZone.addEventListener('click', () => imageInput.click());
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault(); dropZone.classList.remove('dragover');
+  const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+  if (files.length) handleFiles(files);
+});
+imageInput.addEventListener('change', () => {
+  if (imageInput.files.length) handleFiles(Array.from(imageInput.files));
+  imageInput.value = '';
+});
+
+async function handleFiles(files) {
+  const list = $('upload-list');
+  for (const file of files) {
+    if (file.size > 10 * 1024 * 1024) { addUploadItem(list, file.name, 'error', '10MB超'); continue; }
+    const item = addUploadItem(list, file.name, '', 'アップロード中...');
+    try {
+      const dataUrl = await readAsDataURL(file);
+      const r = await api('uploadSiteImage', { slug: state.slug, filename: file.name, dataUrl });
+      item.classList.add('done');
+      item.querySelector('.status').textContent = '完了';
+      const tag = `<img src="${r.absoluteUrl}" alt="${file.name}" style="max-width:100%;">`;
+      insertAtCursor($('html-editor'), tag);
+      state.html = $('html-editor').value;
+      updatePreview();
+      scheduleSave();
+    } catch (e) {
+      item.classList.add('error');
+      item.querySelector('.status').textContent = e.message;
+    }
+  }
+}
+function addUploadItem(container, name, cls, status) {
+  const div = document.createElement('div');
+  div.className = 'upload-item ' + cls;
+  div.innerHTML = `<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(name)}</span><span class="status">${escapeHtml(status)}</span>`;
+  container.appendChild(div);
+  return div;
+}
+function readAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(file);
+  });
+}
+function insertAtCursor(textarea, text) {
+  const s = textarea.selectionStart, e = textarea.selectionEnd;
+  textarea.value = textarea.value.substring(0, s) + text + textarea.value.substring(e);
+  textarea.selectionStart = textarea.selectionEnd = s + text.length;
+  textarea.focus();
+}
+
+// ============================================================
+// 公開
+// ============================================================
+$('publish-btn').addEventListener('click', async () => {
+  const slugErr = validateSlugLocal(state.slug);
+  if (slugErr) { toast(slugErr, true); return; }
+  if (!state.html.trim()) { toast('HTMLが空です', true); return; }
+  if (!confirm(`ページ名「${state.slug}」で公開します。\n公開URL: https://cpmcarshop.github.io/${state.slug}/\n\n初回は反映まで1〜3分かかります。よろしいですか？`)) return;
+  try {
+    showLoader();
+    await api('publishMakerSite', { slug: state.slug, html: state.html, mode: 'manual' });
+    clearDraft();
+    state.isDirty = false;
+    toast('✓ 公開しました。反映まで1〜3分お待ちください');
+    try { state.site = await api('getMySite'); renderSiteInfo(); $('slug-input').disabled = true; } catch (e) {}
+  } catch (e) { toast('公開失敗: ' + e.message, true); }
+  finally { hideLoader(); }
+});
+
+// ============================================================
+// 削除
+// ============================================================
+$('delete-btn').addEventListener('click', async () => {
+  if (!state.site || !state.site.hasSite) return;
+  const slug = state.site.slug;
+  const input = prompt(`サイト「${slug}」を削除します。取り消せません。\n続行するにはページ名「${slug}」を入力：`);
+  if (input !== slug) { if (input !== null) toast('ページ名が一致しません', true); return; }
+  try {
+    showLoader();
+    await api('deleteMakerSite');
+    toast('サイトを削除しました');
+    state.site = { hasSite: false }; state.slug = ''; state.html = PRESETS[0].html;
+    $('slug-input').value = ''; $('slug-input').disabled = false; $('slug-input').classList.remove('valid', 'invalid');
+    $('html-editor').value = state.html;
+    $('delete-btn').style.display = 'none'; $('site-info-bar').style.display = 'none';
+    clearDraft(); updatePreview();
+  } catch (e) { toast('削除失敗: ' + e.message, true); }
+  finally { hideLoader(); }
+});
+</script>
+</body>
+</html>
