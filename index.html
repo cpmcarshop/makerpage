@@ -71,9 +71,9 @@ button.btn-sm { padding: 4px 10px; font-size: 0.75rem; }
 .canvas-tab { padding: 6px 14px; background: transparent; border: 1px solid transparent; border-radius: 4px; color: #aaa; font-family: inherit; font-size: 0.85rem; cursor: pointer; }
 .canvas-tab:hover { background: rgba(255,255,255,0.05); }
 .canvas-tab.active { background: rgba(0,210,255,0.15); border-color: #00d2ff; color: #00d2ff; font-weight: bold; }
-.canvas-body { flex: 1; overflow-y: auto; padding: 24px; }
-.canvas-preview-frame { max-width: 1000px; margin: 0 auto; background: #fff; border-radius: 4px; box-shadow: 0 12px 48px rgba(0,0,0,0.5); overflow: hidden; }
-.canvas-preview-frame iframe { width: 100%; border: none; display: block; background: #fff; min-height: 400px; }
+.canvas-body { flex: 1; overflow-y: auto; padding: 8px; }
+.canvas-preview-frame { max-width: none; margin: 0; background: #fff; border-radius: 4px; box-shadow: 0 12px 48px rgba(0,0,0,0.5); overflow: hidden; }
+  .canvas-preview-frame iframe { width: 100%; border: none; display: block; background: #fff; min-height: 400px; }
 
 .section-list { display: flex; flex-direction: column; gap: 8px; max-width: 900px; margin: 0 auto; }
 .section-block { position: relative; background: #1a1a2e; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 12px; cursor: pointer; transition: border-color 0.15s; }
@@ -210,7 +210,7 @@ button.btn-sm { padding: 4px 10px; font-size: 0.75rem; }
             <div class="section-list" id="section-list"></div>
             <div id="preview-view" style="display:none;">
               <div class="canvas-preview-frame">
-                <iframe id="canvas-preview-iframe" sandbox="allow-scripts allow-forms allow-popups"></iframe>
+               <iframe id="canvas-preview-iframe" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
               </div>
             </div>
           </div>
@@ -668,7 +668,7 @@ ${fonts}
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
-  body { margin: 0; background: ${v.bg}; color: ${v.text}; font-family: ${v.fontMain}; line-height: 1.6; overflow-x: hidden; }
+ body { margin: 0; background: ${v.bg}; color: ${v.text}; font-family: ${v.fontMain}; line-height: 1.6; overflow-x: hidden; min-height: 0; }
   a { color: inherit; text-decoration: none; }
   header { position: sticky; top: 0; z-index: 100; background: ${headerBg}; backdrop-filter: blur(8px); border-bottom: 1px solid ${v.border}; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
   .logo { font-family: ${v.fontEn}; font-size: 1.2rem; font-weight: 900; letter-spacing: 2px; color: ${logoColor}; }
@@ -751,7 +751,7 @@ ${fonts}
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
-  body { margin: 0; background: ${v.bg}; color: ${v.text}; font-family: ${v.fontMain}; line-height: 1.6; overflow-x: hidden; }
+  body { margin: 0; background: ${v.bg}; color: ${v.text}; font-family: ${v.fontMain}; line-height: 1.6; overflow-x: hidden; min-height: 0; }
   a { color: inherit; text-decoration: none; }
   header { z-index: 100; background: ${headerBg}; border-bottom: 1px solid ${v.border}; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
   .logo { font-family: ${v.fontEn}; font-size: 1.2rem; font-weight: 900; letter-spacing: 2px; color: ${logoColor}; }
@@ -776,6 +776,30 @@ ${fonts}
   </header>
   ${sections}
   <footer>${footerBody}</footer>
+  <script>
+    (function(){
+      var last = 0;
+      function send(){
+        try{
+          var b = document.body;
+          if (!b) return;
+          var h = Math.ceil(Math.max(b.scrollHeight, b.offsetHeight, 400));
+          if (h > 30000) h = 30000;
+          if (Math.abs(h - last) < 3) return;
+          last = h;
+          parent.postMessage({ type: 'preview-height', height: h }, '*');
+        }catch(e){}
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', send);
+      } else { send(); }
+      window.addEventListener('load', send);
+      [50, 200, 500, 1000, 2000, 3000].forEach(function(t){ setTimeout(send, t); });
+      if (window.ResizeObserver) {
+        try { new ResizeObserver(send).observe(document.body); } catch(e){}
+      }
+    })();
+  <\/script>
 </body>
 </html>`;
 }
@@ -786,7 +810,17 @@ ${fonts}
 let previewUpdateTimer = null;
 let previewLoadId = 0;
 let previewResizeObserver = null;
-
+window.addEventListener('message', (e) => {
+  if (!e.data || e.data.type !== 'preview-height') return;
+  const iframe = $('canvas-preview-iframe');
+  if (!iframe) return;
+  const raw = Number(e.data.height);
+  if (!isFinite(raw) || raw < 100) return;
+  const h = Math.max(400, Math.min(30000, Math.ceil(raw)));
+  if (iframe._lastH === h) return;
+  iframe._lastH = h;
+  iframe.style.height = h + 'px';
+});
 function schedulePreviewUpdate() {
   if (state.canvasView !== 'preview') return;
   clearTimeout(previewUpdateTimer);
@@ -794,63 +828,46 @@ function schedulePreviewUpdate() {
 }
 
 function updateCanvasPreview() {
-  const iframe = $('canvas-preview-iframe');
-  if (!iframe) return;
 
-  // 前回のobserverを破棄
-  if (previewResizeObserver) {
-    try { previewResizeObserver.disconnect(); } catch (e) {}
-    previewResizeObserver = null;
-  }
-
-  // テーマ背景をiframe要素にも反映（読み込み中の白を軽減）
-  const theme = THEMES[state.themeId] || THEMES.racing;
-  iframe.style.background = theme.vars.bg;
-  iframe.style.height = '400px';
-
-  const myLoadId = ++previewLoadId;
+  const myId = ++previewLoadId;
 
   iframe.onload = () => {
-    if (myLoadId !== previewLoadId) return; // 上書きされたら無視
+    if (myId !== previewLoadId) return;
     try {
       const doc = iframe.contentDocument;
-      const win = iframe.contentWindow;
-      if (!doc || !win) return;
-
-      const measure = () => {
-        try {
-          const rect = doc.body.getBoundingClientRect();
-          const h = Math.max(200, Math.min(20000, Math.ceil(rect.height)));
-          if (iframe._lastHeight !== h) {
-            iframe._lastHeight = h;
-            iframe.style.height = h + 'px';
-          }
-        } catch (e) {}
-      };
-
-      measure();
-      setTimeout(measure, 100);
-      setTimeout(measure, 500);
-      setTimeout(measure, 1500);
-
-      if (typeof ResizeObserver !== 'undefined') {
-        previewResizeObserver = new ResizeObserver(measure);
-        previewResizeObserver.observe(doc.body);
+      if (doc && doc.body) {
+        attachPreviewEditing(iframe, doc);
+        const h = Math.max(400, Math.min(30000, Math.ceil(doc.body.scrollHeight)));
+        if (h > 400) iframe.style.height = h + 'px';
       }
-
-      attachPreviewEditing(iframe, doc);
-    } catch (e) {
-      console.error('[preview] onload error:', e);
-    }
+    } catch (e) {}
   };
 
   iframe.srcdoc = generatePagePreviewHtml();
+
+  // onload が発火しない／contentDocument が null のケースの保険
+  setTimeout(() => {
+    if (myId !== previewLoadId) return;
+    try {
+      const doc = iframe.contentDocument;
+      if (!doc || !doc.body) return;
+      attachPreviewEditing(iframe, doc);
+      const h = Math.max(400, Math.min(30000, Math.ceil(doc.body.scrollHeight)));
+      if (!iframe._lastH || iframe._lastH < 400) {
+        iframe._lastH = h;
+        iframe.style.height = h + 'px';
+      }
+    } catch (e) {}
+  }, 800);
 
   const body = document.querySelector('.canvas-body');
   if (body) body.scrollTop = 0;
 }
 
 function attachPreviewEditing(iframe, doc) {
+  if (!doc || !doc.body) return;
+  if (doc.__editAttached) return;   // ← 追加
+  doc.__editAttached = true;        // ← 追加
   const page = state.pages.find(p => p.id === state.currentPageId);
   if (!page) return;
 
