@@ -826,8 +826,28 @@ function schedulePreviewUpdate() {
   clearTimeout(previewUpdateTimer);
   previewUpdateTimer = setTimeout(updateCanvasPreview, 400);
 }
-
 function updateCanvasPreview() {
+  const iframe = $('canvas-preview-iframe');
+  if (!iframe) return;
+
+  if (previewResizeObserver) {
+    try { previewResizeObserver.disconnect(); } catch (e) {}
+    previewResizeObserver = null;
+  }
+
+  let html;
+  try {
+    html = generatePagePreviewHtml();
+  } catch (e) {
+    console.error('[preview] generatePagePreviewHtml エラー:', e);
+    iframe.srcdoc = '<!DOCTYPE html><body style="background:#fee;padding:20px;font-family:sans-serif;color:#900;"><h2>プレビュー生成エラー</h2><pre>' + String((e && e.stack) || e) + '</pre></body>';
+    return;
+  }
+
+  const theme = THEMES[state.themeId] || THEMES.racing;
+  iframe.style.background = theme.vars.bg;
+  iframe.style.height = '400px';
+  iframe._lastH = 0;
 
   const myId = ++previewLoadId;
 
@@ -838,27 +858,14 @@ function updateCanvasPreview() {
       if (doc && doc.body) {
         attachPreviewEditing(iframe, doc);
         const h = Math.max(400, Math.min(30000, Math.ceil(doc.body.scrollHeight)));
-        if (h > 400) iframe.style.height = h + 'px';
-      }
-    } catch (e) {}
-  };
-
-  iframe.srcdoc = generatePagePreviewHtml();
-
-  // onload が発火しない／contentDocument が null のケースの保険
-  setTimeout(() => {
-    if (myId !== previewLoadId) return;
-    try {
-      const doc = iframe.contentDocument;
-      if (!doc || !doc.body) return;
-      attachPreviewEditing(iframe, doc);
-      const h = Math.max(400, Math.min(30000, Math.ceil(doc.body.scrollHeight)));
-      if (!iframe._lastH || iframe._lastH < 400) {
-        iframe._lastH = h;
         iframe.style.height = h + 'px';
       }
-    } catch (e) {}
-  }, 800);
+    } catch (e) {
+      console.error('[preview] onload エラー:', e);
+    }
+  };
+
+  iframe.srcdoc = html;
 
   const body = document.querySelector('.canvas-body');
   if (body) body.scrollTop = 0;
