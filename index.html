@@ -174,6 +174,7 @@ button.btn-sm { padding: 4px 10px; font-size: 0.75rem; }
     <input type="text" id="slug-input" placeholder="ページ名" maxlength="64">
     <button class="btn btn-secondary" id="slug-check-btn">確認</button>
     <button class="btn btn-secondary" id="theme-btn">🎨 テーマ</button>
+    <button class="btn btn-secondary" id="settings-btn">⚙ サイト設定</button>
     <button class="btn" id="preview-btn">👁 プレビュー</button>
     <button class="btn" id="publish-btn">公開</button>
     <button class="btn btn-danger" id="delete-btn" style="display:none;">削除</button>
@@ -255,6 +256,27 @@ button.btn-sm { padding: 4px 10px; font-size: 0.75rem; }
   </div>
 </div>
 
+<!-- ===== サイト設定モーダル ===== -->
+<div id="settings-modal" class="modal">
+  <div class="modal-content">
+    <h3>⚙ サイト設定（上のバナー・フッター）</h3>
+    <div class="prop-group"><label>ロゴテキスト（空欄ならメーカー名）</label><input type="text" id="set-logoText"></div>
+    <div class="prop-group"><label>ロゴの色（例: #ffffff）</label><input type="text" id="set-logoColor" placeholder="#ffffff"></div>
+    <div class="prop-group"><label>ヘッダー背景色（例: #0a0a0c）</label><input type="text" id="set-headerBg" placeholder="#0a0a0c"></div>
+    <div class="prop-group"><label>ヘッダー文字色</label><input type="text" id="set-headerTextColor" placeholder="#ffffff"></div>
+    <div class="prop-group"><label>ナビの文字色</label><input type="text" id="set-navColor" placeholder="#a0a0ab"></div>
+    <div class="prop-group"><label>ナビ アクティブ色</label><input type="text" id="set-navActiveColor" placeholder="#ff1e27"></div>
+    <div class="prop-group"><label><input type="checkbox" id="set-showNav"> ナビを表示する</label></div>
+    <div class="prop-group"><label>フッターテキスト（空欄なら自動）</label><input type="text" id="set-footerText"></div>
+    <div class="prop-group"><label>フッター背景色</label><input type="text" id="set-footerBg" placeholder="transparent"></div>
+    <div class="prop-group"><label>フッター文字色</label><input type="text" id="set-footerTextColor" placeholder="#a0a0ab"></div>
+    <div style="text-align:right; margin-top:16px;">
+      <button class="btn btn-secondary" id="settings-cancel">キャンセル</button>
+      <button class="btn" id="settings-save">保存</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== プレビューモーダル ===== -->
 <div id="preview-modal" class="modal">
   <div class="modal-content" style="max-width:1000px; padding:0; overflow:hidden;">
@@ -284,8 +306,6 @@ const firebaseConfig = {
   messagingSenderId: "460103021741",
   appId: "1:460103021741:web:40ed966e261ed657e80224"
 };
-
-// Firebase 設定の typo 対策（正しい値に上書き）
 firebaseConfig.apiKey = "AIzaSyCffFYNOEcrGu2GKgSiE6q6KgGkCtxJEFw";
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -301,6 +321,20 @@ const googleProvider = new GoogleAuthProvider();
 // ============================================================
 // 状態
 // ============================================================
+// ⚠️ DEFAULT_SETTINGS は state より必ず前で定義する
+const DEFAULT_SETTINGS = {
+  logoText: '',
+  logoColor: '',
+  headerBg: '',
+  headerTextColor: '',
+  navColor: '',
+  navActiveColor: '',
+  showNav: true,
+  footerText: '',
+  footerBg: '',
+  footerTextColor: '',
+};
+
 const state = {
   user: null,
   maker: null,
@@ -314,7 +348,8 @@ const state = {
   currentPageId: null,
   selectedSectionId: null,
   isDirty: false,
-  canvasView: 'list', // 'list' | 'preview'  ← 追加
+  canvasView: 'list', // 'list' | 'preview'
+  siteSettings: { ...DEFAULT_SETTINGS }, // ← state の中に入れる
 };
 
 const $ = (id) => document.getElementById(id);
@@ -343,6 +378,44 @@ function setDebug(msg) {
   if (el) el.textContent = msg;
   console.log('[debug]', msg);
 }
+
+// ============================================================
+// サイト設定モーダル
+// ============================================================
+function openSettingsModal() {
+  const s = state.siteSettings || DEFAULT_SETTINGS;
+  $('set-logoText').value = s.logoText || '';
+  $('set-logoColor').value = s.logoColor || '';
+  $('set-headerBg').value = s.headerBg || '';
+  $('set-headerTextColor').value = s.headerTextColor || '';
+  $('set-navColor').value = s.navColor || '';
+  $('set-navActiveColor').value = s.navActiveColor || '';
+  $('set-showNav').checked = s.showNav !== false;
+  $('set-footerText').value = s.footerText || '';
+  $('set-footerBg').value = s.footerBg || '';
+  $('set-footerTextColor').value = s.footerTextColor || '';
+  $('settings-modal').classList.add('active');
+}
+$('settings-btn').addEventListener('click', openSettingsModal);
+$('settings-cancel').addEventListener('click', () => $('settings-modal').classList.remove('active'));
+$('settings-save').addEventListener('click', () => {
+  state.siteSettings = {
+    logoText: $('set-logoText').value.trim(),
+    logoColor: $('set-logoColor').value.trim(),
+    headerBg: $('set-headerBg').value.trim(),
+    headerTextColor: $('set-headerTextColor').value.trim(),
+    navColor: $('set-navColor').value.trim(),
+    navActiveColor: $('set-navActiveColor').value.trim(),
+    showNav: $('set-showNav').checked,
+    footerText: $('set-footerText').value.trim(),
+    footerBg: $('set-footerBg').value.trim(),
+    footerTextColor: $('set-footerTextColor').value.trim(),
+  };
+  scheduleSave();
+  schedulePreviewUpdate();
+  $('settings-modal').classList.remove('active');
+  toast('サイト設定を保存しました');
+});
 
 // ============================================================
 // API
@@ -614,15 +687,28 @@ function generateSiteHtml() {
   const v = t.vars;
 
   const pageHtml = state.pages.map((page, idx) => {
-    const sections = page.sections.map(s => renderSectionPreviewHtml(s, state.themeId)).join('');
+    const sections = page.sections.map(sec => renderSectionPreviewHtml(sec, state.themeId)).join('');
     return `<div class="page" id="page-${page.id}" style="display:${idx === 0 ? 'block' : 'none'};">${sections}</div>`;
   }).join('');
 
-  const navHtml = state.pages.map((page, idx) => 
+  const navHtml = state.pages.map((page) =>
     `<a href="#page-${page.id}" class="nav-link" data-page="${page.id}">${escapeHtml(page.name)}</a>`
   ).join('');
 
   const fonts = `<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Noto+Sans+JP:wght@400;700;900&family=Noto+Serif+JP:wght@400;600;700&family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">`;
+
+  // ===== サイト設定を1回だけ展開 =====
+  const cfg        = state.siteSettings || {};
+  const logoText   = cfg.logoText || state.maker?.makerName || 'MY SITE';
+  const headerBg   = cfg.headerBg || v.bg;
+  const headerText = cfg.headerTextColor || v.text;
+  const logoColor  = cfg.logoColor || headerText;
+  const navColor   = cfg.navColor || v.textGray;
+  const navActive  = cfg.navActiveColor || v.primary;
+  const footerBg   = cfg.footerBg || 'transparent';
+  const footerText = cfg.footerTextColor || v.textGray;
+  const footerBody = cfg.footerText || `&copy; ${escapeHtml(state.maker?.makerName || '')} — Created with 架空車街`;
+  const navBlock   = cfg.showNav === false ? '' : `<nav>${navHtml}</nav>`;
 
   return `<!DOCTYPE html>
 <html lang="ja">
@@ -637,14 +723,14 @@ ${fonts}
   html { scroll-behavior: smooth; }
   body { margin: 0; background: ${v.bg}; color: ${v.text}; font-family: ${v.fontMain}; line-height: 1.6; overflow-x: hidden; }
   a { color: inherit; text-decoration: none; }
-  header { position: sticky; top: 0; z-index: 100; background: ${v.bg}ee; backdrop-filter: blur(8px); border-bottom: 1px solid ${v.border}; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
-  .logo { font-family: ${v.fontEn}; font-size: 1.2rem; font-weight: 900; letter-spacing: 2px; color: ${v.text}; }
+  header { position: sticky; top: 0; z-index: 100; background: ${headerBg}; backdrop-filter: blur(8px); border-bottom: 1px solid ${v.border}; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
+  .logo { font-family: ${v.fontEn}; font-size: 1.2rem; font-weight: 900; letter-spacing: 2px; color: ${logoColor}; }
   nav { display: flex; gap: 16px; flex-wrap: wrap; }
-  .nav-link { font-size: 0.85rem; font-weight: 600; color: ${v.textGray}; transition: color 0.2s; }
-  .nav-link:hover, .nav-link.active { color: ${v.primary}; }
+  .nav-link { font-size: 0.85rem; font-weight: 600; color: ${navColor}; transition: color 0.2s; }
+  .nav-link:hover, .nav-link.active { color: ${navActive}; }
   .page { display: none; }
   .page.active { display: block; }
-  footer { text-align: center; padding: 30px 20px; border-top: 1px solid ${v.border}; color: ${v.textGray}; font-size: 0.8rem; }
+  footer { text-align: center; padding: 30px 20px; border-top: 1px solid ${v.border}; background: ${footerBg}; color: ${footerText}; font-size: 0.8rem; }
   @media (max-width: 600px) {
     header { padding: 10px 14px; flex-direction: column; gap: 8px; }
     nav { justify-content: center; }
@@ -653,11 +739,11 @@ ${fonts}
 </head>
 <body>
   <header>
-    <div class="logo">${escapeHtml(state.maker?.makerName || 'MY SITE')}</div>
-    <nav>${navHtml}</nav>
+    <div class="logo">${escapeHtml(logoText)}</div>
+    ${navBlock}
   </header>
   ${pageHtml}
-  <footer>&copy; ${escapeHtml(state.maker?.makerName || '')} — Created with 架空車街</footer>
+  <footer>${footerBody}</footer>
   <script>
     function showPage() {
       var hash = location.hash.replace('#page-', '') || '${state.pages[0]?.id || ''}';
@@ -675,6 +761,7 @@ ${fonts}
 </body>
 </html>`;
 }
+
 // ============================================================
 // 現在ページのプレビューHTML生成
 // ============================================================
@@ -687,14 +774,27 @@ function generatePagePreviewHtml() {
     return `<!DOCTYPE html><html><body style="background:${v.bg};color:${v.textGray};font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">ページがありません</body></html>`;
   }
 
-  const sections = page.sections.map(s => renderSectionPreviewHtml(s, state.themeId)).join('');
+  const sections = page.sections.map(sec => renderSectionPreviewHtml(sec, state.themeId)).join('');
 
-  // ナビは <a> ではなく <span> にして、編集用プレビューでは遷移させない
+  // 編集用プレビューではリンク遷移させない（span）
   const navHtml = state.pages.map(p =>
     `<span class="nav-link ${p.id === page.id ? 'active' : ''}">${escapeHtml(p.name)}</span>`
   ).join('');
 
   const fonts = `<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Noto+Sans+JP:wght@400;700;900&family=Noto+Serif+JP:wght@400;600;700&family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">`;
+
+  // ===== サイト設定を1回だけ展開 =====
+  const cfg        = state.siteSettings || {};
+  const logoText   = cfg.logoText || state.maker?.makerName || 'MY SITE';
+  const headerBg   = cfg.headerBg || v.bg;
+  const headerText = cfg.headerTextColor || v.text;
+  const logoColor  = cfg.logoColor || headerText;
+  const navColor   = cfg.navColor || v.textGray;
+  const navActive  = cfg.navActiveColor || v.primary;
+  const footerBg   = cfg.footerBg || 'transparent';
+  const footerText = cfg.footerTextColor || v.textGray;
+  const footerBody = cfg.footerText || `&copy; ${escapeHtml(state.maker?.makerName || '')} — Created with 架空車街`;
+  const navBlock   = cfg.showNav === false ? '' : `<nav>${navHtml}</nav>`;
 
   return `<!DOCTYPE html>
 <html lang="ja">
@@ -708,12 +808,12 @@ ${fonts}
   html { scroll-behavior: smooth; }
   body { margin: 0; background: ${v.bg}; color: ${v.text}; font-family: ${v.fontMain}; line-height: 1.6; overflow-x: hidden; }
   a { color: inherit; text-decoration: none; }
-  header { position: sticky; top: 0; z-index: 100; background: ${v.bg}ee; backdrop-filter: blur(8px); border-bottom: 1px solid ${v.border}; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
-  .logo { font-family: ${v.fontEn}; font-size: 1.2rem; font-weight: 900; letter-spacing: 2px; color: ${v.text}; }
+  header { position: sticky; top: 0; z-index: 100; background: ${headerBg}; backdrop-filter: blur(8px); border-bottom: 1px solid ${v.border}; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
+  .logo { font-family: ${v.fontEn}; font-size: 1.2rem; font-weight: 900; letter-spacing: 2px; color: ${logoColor}; }
   nav { display: flex; gap: 16px; flex-wrap: wrap; }
-  .nav-link { font-size: 0.85rem; font-weight: 600; color: ${v.textGray}; cursor: default; }
-  .nav-link.active { color: ${v.primary}; }
-  footer { text-align: center; padding: 30px 20px; border-top: 1px solid ${v.border}; color: ${v.textGray}; font-size: 0.8rem; }
+  .nav-link { font-size: 0.85rem; font-weight: 600; color: ${navColor}; cursor: default; }
+  .nav-link.active { color: ${navActive}; }
+  footer { text-align: center; padding: 30px 20px; border-top: 1px solid ${v.border}; background: ${footerBg}; color: ${footerText}; font-size: 0.8rem; }
   @media (max-width: 600px) {
     header { padding: 10px 14px; flex-direction: column; gap: 8px; }
     nav { justify-content: center; }
@@ -722,18 +822,21 @@ ${fonts}
 </head>
 <body>
   <header>
-    <div class="logo">${escapeHtml(state.maker?.makerName || 'MY SITE')}</div>
-    <nav>${navHtml}</nav>
+    <div class="logo">${escapeHtml(logoText)}</div>
+    ${navBlock}
   </header>
   ${sections}
-  <footer>&copy; ${escapeHtml(state.maker?.makerName || '')} — Created with 架空車街</footer>
+  <footer>${footerBody}</footer>
   <script>
     function sendHeight() {
-      var h = document.documentElement.scrollHeight || document.body.scrollHeight;
+      var h = Math.ceil(document.body.getBoundingClientRect().height);
       parent.postMessage({ type: 'preview-height', height: h }, '*');
     }
     window.addEventListener('load', sendHeight);
     window.addEventListener('resize', sendHeight);
+    if (window.ResizeObserver) {
+      new ResizeObserver(sendHeight).observe(document.body);
+    }
     setTimeout(sendHeight, 100);
     setTimeout(sendHeight, 500);
     setTimeout(sendHeight, 1500);
@@ -755,8 +858,9 @@ function schedulePreviewUpdate() {
 function updateCanvasPreview() {
   const iframe = $('canvas-preview-iframe');
   if (!iframe) return;
-  const html = generatePagePreviewHtml();
-  iframe.srcdoc = html;
+  delete iframe.dataset.lastHeight;
+  iframe.style.height = '400px';
+  iframe.srcdoc = generatePagePreviewHtml();
 }
 
 function switchCanvasView(view) {
@@ -775,6 +879,26 @@ function switchCanvasView(view) {
     updateCanvasPreview();
   }
 }
+
+// 中央キャンバスのタブ切替
+document.querySelector('.canvas-tabs').addEventListener('click', (e) => {
+  const tab = e.target.closest('[data-canvas-view]');
+  if (tab) switchCanvasView(tab.dataset.canvasView);
+});
+
+// iframe から高さ通知を受け取る（無限ループ防止）
+window.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'preview-height') {
+    const iframe = $('canvas-preview-iframe');
+    if (!iframe) return;
+    const h = Math.max(200, Math.min(e.data.height, 20000));
+    if (iframe.dataset.lastHeight !== String(h)) {
+      iframe.dataset.lastHeight = String(h);
+      iframe.style.height = h + 'px';
+    }
+  }
+});
+
 // ============================================================
 // エディタ：ページタブ
 // ============================================================
@@ -801,11 +925,11 @@ function renderSectionList() {
     return;
   }
 
-  container.innerHTML = page.sections.map((sec, idx) => {
-    const t = SECTION_NAMES[sec.type] || sec.type;
+  container.innerHTML = page.sections.map((sec) => {
+    const label = SECTION_NAMES[sec.type] || sec.type;
     return `<div class="section-block ${sec.id === state.selectedSectionId ? 'selected' : ''}" data-section-id="${sec.id}">
       <div class="section-block-label">
-        <span>${t}</span>
+        <span>${label}</span>
         <div class="section-actions">
           <button data-move-up="${sec.id}" title="上へ">↑</button>
           <button data-move-down="${sec.id}" title="下へ">↓</button>
@@ -828,14 +952,14 @@ const SECTION_NAMES = {
   spacer: '余白',
 };
 const SECTION_DESCS = {
-  hero: s => s.props.title || 'タイトル未設定',
-  text: s => s.props.title || 'タイトル未設定',
-  image: s => s.props.caption || s.props.src || '画像未設定',
-  cards: s => `${(s.props.items||[]).length} 枚のカード`,
-  gallery: s => `${(s.props.images||[]).length} 枚の画像`,
-  timeline: s => `${(s.props.items||[]).length} 件の履歴`,
-  contact: s => s.props.title || 'コンタクト',
-  spacer: s => `高さ ${s.props.height || 60}px`,
+  hero: sec => sec.props.title || 'タイトル未設定',
+  text: sec => sec.props.title || 'タイトル未設定',
+  image: sec => sec.props.caption || sec.props.src || '画像未設定',
+  cards: sec => `${(sec.props.items||[]).length} 枚のカード`,
+  gallery: sec => `${(sec.props.images||[]).length} 枚の画像`,
+  timeline: sec => `${(sec.props.items||[]).length} 件の履歴`,
+  contact: sec => sec.props.title || 'コンタクト',
+  spacer: sec => `高さ ${sec.props.height || 60}px`,
 };
 
 // ============================================================
@@ -887,7 +1011,7 @@ function renderPropertiesPanel() {
 
   container.innerHTML = html;
 
-  // イベント登録（共通）
+  // 共通テキストバインド
   const bindText = (id, key) => {
     const el = $(id);
     if (el) el.addEventListener('input', () => {
@@ -919,7 +1043,7 @@ function renderPropertiesPanel() {
     input.click();
   });
 
-  // カードリスト
+  // カード
   if (section.type === 'cards') {
     renderCardsList(section);
     const addBtn = $('p-add-card');
@@ -1091,7 +1215,7 @@ function scheduleSave() {
   state.isDirty = true;
   clearTimeout(scheduleSave._t);
   scheduleSave._t = setTimeout(saveDraft, SAVE_DEBOUNCE);
-  schedulePreviewUpdate();   // ← 追加
+  schedulePreviewUpdate();
 }
 function saveDraft() {
   try {
@@ -1100,6 +1224,7 @@ function saveDraft() {
       themeId: state.themeId,
       pages: state.pages,
       currentPageId: state.currentPageId,
+      siteSettings: state.siteSettings,
       savedAt: Date.now(),
     }));
     state.isDirty = false;
@@ -1166,10 +1291,12 @@ async function initAfterLogin(user) {
       state.themeId = draft.themeId || 'racing';
       state.pages = draft.pages;
       state.currentPageId = draft.currentPageId || state.pages[0]?.id;
+      state.siteSettings = draft.siteSettings || { ...DEFAULT_SETTINGS };
     } else {
       state.themeId = 'racing';
       state.pages = THEMES.racing.defaultPages();
       state.currentPageId = state.pages[0]?.id;
+      state.siteSettings = { ...DEFAULT_SETTINGS };
     }
 
     // 手動モードのHTML（最低限）
@@ -1208,22 +1335,10 @@ function switchMode(mode, save = true) {
     renderPageTabs();
     renderSectionList();
     renderPropertiesPanel();
-    if (state.canvasView === 'preview') updateCanvasPreview();   // ← 追加
+    if (state.canvasView === 'preview') updateCanvasPreview();
   }
 }
-// 中央キャンバスのタブ切替
-document.querySelector('.canvas-tabs').addEventListener('click', (e) => {
-  const tab = e.target.closest('[data-canvas-view]');
-  if (tab) switchCanvasView(tab.dataset.canvasView);
-});
 
-// iframeから高さ通知を受け取ってiframeをリサイズ
-window.addEventListener('message', (e) => {
-  if (e.data && e.data.type === 'preview-height') {
-    const iframe = $('canvas-preview-iframe');
-    if (iframe) iframe.style.height = (e.data.height + 20) + 'px';
-  }
-});
 // ============================================================
 // イベント登録
 // ============================================================
@@ -1252,7 +1367,7 @@ $('page-tabs').addEventListener('click', (e) => {
     state.currentPageId = tab.dataset.pageId;
     state.selectedSectionId = null;
     renderPageTabs(); renderSectionList(); renderPropertiesPanel();
-    schedulePreviewUpdate();   // ← 追加
+    schedulePreviewUpdate();
     return;
   }
   if (e.target.id === 'add-page-btn') {
@@ -1264,11 +1379,11 @@ $('page-tabs').addEventListener('click', (e) => {
     state.selectedSectionId = null;
     scheduleSave();
     renderPageTabs(); renderSectionList(); renderPropertiesPanel();
-    schedulePreviewUpdate();   // ← 追加
+    schedulePreviewUpdate();
   }
 });
 
-// セクションリスト
+// セクションリスト（並び替え・削除・選択）
 $('section-list').addEventListener('click', (e) => {
   const upBtn = e.target.closest('[data-move-up]');
   const downBtn = e.target.closest('[data-move-down]');
@@ -1280,7 +1395,10 @@ $('section-list').addEventListener('click', (e) => {
     const idx = page.sections.findIndex(s => s.id === upBtn.dataset.moveUp);
     if (idx > 0) {
       [page.sections[idx - 1], page.sections[idx]] = [page.sections[idx], page.sections[idx - 1]];
-      scheduleSave(); renderSectionList();
+      scheduleSave();
+      renderSectionList();
+      renderPropertiesPanel();
+      schedulePreviewUpdate();
     }
     return;
   }
@@ -1289,7 +1407,10 @@ $('section-list').addEventListener('click', (e) => {
     const idx = page.sections.findIndex(s => s.id === downBtn.dataset.moveDown);
     if (idx >= 0 && idx < page.sections.length - 1) {
       [page.sections[idx + 1], page.sections[idx]] = [page.sections[idx], page.sections[idx + 1]];
-      scheduleSave(); renderSectionList();
+      scheduleSave();
+      renderSectionList();
+      renderPropertiesPanel();
+      schedulePreviewUpdate();
     }
     return;
   }
@@ -1298,7 +1419,10 @@ $('section-list').addEventListener('click', (e) => {
     if (!confirm('このセクションを削除しますか？')) return;
     page.sections = page.sections.filter(s => s.id !== delBtn.dataset.delete);
     if (state.selectedSectionId === delBtn.dataset.delete) state.selectedSectionId = null;
-    scheduleSave(); renderSectionList(); renderPropertiesPanel();
+    scheduleSave();
+    renderSectionList();
+    renderPropertiesPanel();
+    schedulePreviewUpdate();
     return;
   }
   const block = e.target.closest('[data-section-id]');
@@ -1455,6 +1579,7 @@ $('delete-btn').addEventListener('click', async () => {
     state.pages = THEMES.racing.defaultPages();
     state.currentPageId = state.pages[0].id;
     state.themeId = 'racing';
+    state.siteSettings = { ...DEFAULT_SETTINGS };
     $('slug-input').value = ''; $('slug-input').disabled = false;
     $('delete-btn').style.display = 'none'; $('site-info-bar').style.display = 'none';
     clearDraft();
