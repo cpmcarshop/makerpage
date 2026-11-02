@@ -357,10 +357,29 @@ function renderSiteInfo() {
 async function initAfterLogin(user) {
   showLoader();
   try {
-    const maker = await getMakerFromMain(user.uid);
-    if (!maker) { showScreen('not-maker'); return; }
-    state.maker = maker;
+    let makerInfo;
+    try {
+      makerInfo = await api('getMyMakerInfo');
+      console.log('getMyMakerInfo result:', makerInfo);
+    } catch (e) {
+      console.error('getMyMakerInfo failed:', e);
+      $('debug-uid').textContent =
+        'Your UID: ' + user.uid + '\nエラー: ' + e.message;
+      showScreen('not-maker');
+      return;
+    }
 
+    const maker = makerInfo?.maker;
+    if (!maker) {
+      console.warn('No maker found for uid:', user.uid);
+      $('debug-uid').textContent =
+        'Your UID: ' + user.uid + '\n→ メーカーが見つかりません（DB未登録）';
+      showScreen('not-maker');
+      return;
+    }
+
+    state.maker = maker;
+    // 以下は今まで通り
     try { state.site = await api('getMySite'); }
     catch (e) { state.site = { hasSite: false }; }
 
