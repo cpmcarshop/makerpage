@@ -48,10 +48,9 @@ button.btn-sm { padding: 4px 10px; font-size: 0.75rem; }
 .manual-preview { flex: 1; min-width: 0; background: #fff; border-left: 1px solid #2a2a4a; }
 .manual-preview iframe { width: 100%; height: 100%; border: none; display: block; }
 
-/* ===== GUIモード（ブロックベース） ===== */
+/* ===== GUIモード ===== */
 .gui-container { display: flex; flex-direction: column; width: 100%; height: 100%; }
 
-/* ページタブ */
 .page-tabs { display: flex; align-items: center; gap: 4px; background: #16213e; border-bottom: 1px solid #2a2a4a; padding: 8px 12px; overflow-x: auto; flex-shrink: 0; }
 .page-tab { padding: 6px 14px; background: transparent; border: 1px solid transparent; border-radius: 4px; color: #aaa; font-family: inherit; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
 .page-tab:hover { background: rgba(255,255,255,0.05); }
@@ -59,17 +58,14 @@ button.btn-sm { padding: 4px 10px; font-size: 0.75rem; }
 .page-tab-del { color: #e94560; margin-left: 6px; font-size: 0.9rem; opacity: 0.6; }
 .page-tab-del:hover { opacity: 1; }
 
-/* エディタ本体 */
 .gui-main { flex: 1; display: flex; overflow: hidden; min-height: 0; }
 
-/* 左パレット */
 .section-palette { width: 200px; flex-shrink: 0; background: #16213e; border-right: 1px solid #2a2a4a; overflow-y: auto; padding: 16px 12px; }
 .section-palette h4 { margin: 0 0 14px; font-size: 0.75rem; color: #00d2ff; letter-spacing: 1px; text-transform: uppercase; font-weight: 600; }
 .section-palette button { display: flex; align-items: center; gap: 10px; width: 100%; margin-bottom: 6px; padding: 10px 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; color: #ccc; font-family: inherit; font-size: 0.82rem; cursor: pointer; text-align: left; transition: all 0.15s; }
 .section-palette button:hover { background: rgba(0,210,255,0.1); border-color: rgba(0,210,255,0.4); color: #00d2ff; transform: translateX(2px); }
 .section-palette button .icon { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: rgba(0,210,255,0.08); border-radius: 6px; font-size: 0.8rem; flex-shrink: 0; }
 
-/* 中央キャンバス */
 .canvas-wrapper { flex: 1; min-width: 0; display: flex; flex-direction: column; background: #0f0f1a; }
 .canvas-tabs { display: flex; gap: 4px; padding: 8px 12px; background: #16213e; border-bottom: 1px solid #2a2a4a; flex-shrink: 0; }
 .canvas-tab { padding: 6px 14px; background: transparent; border: 1px solid transparent; border-radius: 4px; color: #aaa; font-family: inherit; font-size: 0.85rem; cursor: pointer; }
@@ -78,10 +74,7 @@ button.btn-sm { padding: 4px 10px; font-size: 0.75rem; }
 .canvas-body { flex: 1; overflow-y: auto; padding: 24px; }
 .canvas-preview-frame { max-width: 1000px; margin: 0 auto; background: #fff; border-radius: 4px; box-shadow: 0 12px 48px rgba(0,0,0,0.5); overflow: hidden; }
 .canvas-preview-frame iframe { width: 100%; border: none; display: block; background: #fff; min-height: 400px; }
-.canvas-frame { max-width: 900px; margin: 0 auto; background: #fff; border-radius: 4px; box-shadow: 0 12px 48px rgba(0,0,0,0.5); overflow: hidden; }
-.canvas-frame iframe { width: 100%; border: none; display: block; background: #fff; }
 
-/* セクションリスト（エディタ用） */
 .section-list { display: flex; flex-direction: column; gap: 8px; max-width: 900px; margin: 0 auto; }
 .section-block { position: relative; background: #1a1a2e; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 12px; cursor: pointer; transition: border-color 0.15s; }
 .section-block:hover { border-color: rgba(0,210,255,0.5); }
@@ -93,7 +86,6 @@ button.btn-sm { padding: 4px 10px; font-size: 0.75rem; }
 .section-actions button:hover { background: #00d2ff; color: #000; }
 .section-preview { color: #888; font-size: 0.75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* 右プロパティ */
 .properties-panel { width: 280px; flex-shrink: 0; background: #16213e; border-left: 1px solid #2a2a4a; overflow-y: auto; padding: 16px 12px; }
 .properties-panel h4 { margin: 0 0 14px; font-size: 0.75rem; color: #00d2ff; letter-spacing: 1px; text-transform: uppercase; font-weight: 600; }
 .prop-group { margin-bottom: 14px; }
@@ -105,7 +97,6 @@ button.btn-sm { padding: 4px 10px; font-size: 0.75rem; }
 .prop-list-item .prop-list-del { float: right; color: #e94560; cursor: pointer; font-size: 0.85rem; }
 .prop-empty { color: #555; font-size: 0.8rem; text-align: center; padding: 30px 0; line-height: 1.6; }
 
-/* モーダル */
 .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
 .modal.active { display: flex; }
 .modal-content { background: #16213e; border: 1px solid #00d2ff; border-radius: 8px; padding: 24px; max-width: 700px; width: 100%; max-height: 85vh; overflow-y: auto; }
@@ -145,7 +136,6 @@ button.btn-sm { padding: 4px 10px; font-size: 0.75rem; }
 
 <div id="loader" class="loader-overlay"><div class="spinner"></div></div>
 
-<!-- ===== ログイン画面 ===== -->
 <div id="login-screen" class="screen">
   <div class="login-box">
     <h1>メーカーページ作成</h1>
@@ -155,7 +145,6 @@ button.btn-sm { padding: 4px 10px; font-size: 0.75rem; }
   </div>
 </div>
 
-<!-- ===== メーカー未登録画面 ===== -->
 <div id="not-maker-screen" class="screen">
   <div class="not-maker-box">
     <h2>メーカー登録が必要です</h2>
@@ -167,7 +156,6 @@ button.btn-sm { padding: 4px 10px; font-size: 0.75rem; }
   </div>
 </div>
 
-<!-- ===== エディタ画面 ===== -->
 <div id="editor-screen" class="screen">
   <div class="toolbar">
     <span class="brand">メーカーページ</span>
@@ -188,7 +176,6 @@ button.btn-sm { padding: 4px 10px; font-size: 0.75rem; }
   </div>
 
   <div class="editor-area">
-    <!-- 手動モード -->
     <div id="manual-mode-container" class="manual-container" style="display:none;">
       <div class="manual-input">
         <textarea id="html-editor" spellcheck="false"></textarea>
@@ -198,13 +185,10 @@ button.btn-sm { padding: 4px 10px; font-size: 0.75rem; }
       </div>
     </div>
 
-    <!-- GUIモード -->
     <div id="gui-mode-container" class="gui-container">
-      <!-- ページタブ -->
       <div class="page-tabs" id="page-tabs"></div>
 
       <div class="gui-main">
-        <!-- 左パレット -->
         <div class="section-palette">
           <h4>セクション追加</h4>
           <button data-add="hero"><span class="icon">★</span>ヒーロー</button>
@@ -217,7 +201,6 @@ button.btn-sm { padding: 4px 10px; font-size: 0.75rem; }
           <button data-add="spacer"><span class="icon">␣</span>余白</button>
         </div>
 
-        <!-- 中央キャンバス -->
         <div class="canvas-wrapper">
           <div class="canvas-tabs">
             <button class="canvas-tab active" data-canvas-view="list">📋 並び替え</button>
@@ -232,7 +215,6 @@ button.btn-sm { padding: 4px 10px; font-size: 0.75rem; }
             </div>
           </div>
         </div>
-        <!-- 右プロパティ -->
         <div class="properties-panel">
           <h4>プロパティ</h4>
           <div id="properties-content">
@@ -244,7 +226,6 @@ button.btn-sm { padding: 4px 10px; font-size: 0.75rem; }
   </div>
 </div>
 
-<!-- ===== テーマ選択モーダル ===== -->
 <div id="theme-modal" class="modal">
   <div class="modal-content">
     <h3>🎨 テーマを選択</h3>
@@ -256,7 +237,6 @@ button.btn-sm { padding: 4px 10px; font-size: 0.75rem; }
   </div>
 </div>
 
-<!-- ===== サイト設定モーダル ===== -->
 <div id="settings-modal" class="modal">
   <div class="modal-content">
     <h3>⚙ サイト設定（上のバナー・フッター）</h3>
@@ -277,7 +257,6 @@ button.btn-sm { padding: 4px 10px; font-size: 0.75rem; }
   </div>
 </div>
 
-<!-- ===== プレビューモーダル ===== -->
 <div id="preview-modal" class="modal">
   <div class="modal-content" style="max-width:1000px; padding:0; overflow:hidden;">
     <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:#0a0c1b; border-bottom:1px solid #2a2a4a;">
@@ -291,22 +270,19 @@ button.btn-sm { padding: 4px 10px; font-size: 0.75rem; }
 <div id="toast"></div>
 
 <script type="module">
-// ============================================================
-// 設定
-// ============================================================
 const WORKER_URL = 'https://makerpage.paapaapaa810.workers.dev';
 const STORAGE_KEY = 'makerpage_site_v2';
 const SAVE_DEBOUNCE = 1500;
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCffFFYNOEcrGu2GKgSiE6q6KgGkCtxJEFw",
+  apiKey: "AIzaSyCffFYNOEcrGu2GKgSiE6q6KgGkCtxJEFw",
   authDomain: "kakuusha-gai.firebaseapp.com",
   projectId: "kakuusha-gai",
   storageBucket: "kakuusha-gai.firebasestorage.app",
   messagingSenderId: "460103021741",
   appId: "1:460103021741:web:40ed966e261ed657e80224"
 };
-firebaseConfig.apiKey = "AIzaSyCffFYNOEcrGu2GKgSiE6q6KgGkCtxJEFw";
+firebaseConfig.apiKey = "AIzaSyCffFFYNOEcrGu2GKgSiE6q6KgGkCtxJEFw";
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
@@ -318,10 +294,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
-// ============================================================
-// 状態
-// ============================================================
-// ⚠️ DEFAULT_SETTINGS は state より必ず前で定義する
 const DEFAULT_SETTINGS = {
   logoText: '',
   logoColor: '',
@@ -340,16 +312,15 @@ const state = {
   maker: null,
   site: null,
   slug: '',
-  mode: 'gui', // 'manual' | 'gui'
+  mode: 'gui',
   html: '',
-  // GUI用
   themeId: 'racing',
-  pages: [],       // [{ id, name, sections: [...] }]
+  pages: [],
   currentPageId: null,
   selectedSectionId: null,
   isDirty: false,
-  canvasView: 'list', // 'list' | 'preview'
-  siteSettings: { ...DEFAULT_SETTINGS }, // ← state の中に入れる
+  canvasView: 'list',
+  siteSettings: { ...DEFAULT_SETTINGS },
 };
 
 const $ = (id) => document.getElementById(id);
@@ -379,9 +350,6 @@ function setDebug(msg) {
   console.log('[debug]', msg);
 }
 
-// ============================================================
-// サイト設定モーダル
-// ============================================================
 function openSettingsModal() {
   const s = state.siteSettings || DEFAULT_SETTINGS;
   $('set-logoText').value = s.logoText || '';
@@ -417,9 +385,6 @@ $('settings-save').addEventListener('click', () => {
   toast('サイト設定を保存しました');
 });
 
-// ============================================================
-// API
-// ============================================================
 async function api(action, payload = {}) {
   if (!state.user) throw new Error('ログインしていません');
   const token = await state.user.getIdToken();
@@ -433,15 +398,10 @@ async function api(action, payload = {}) {
   return data.data;
 }
 
-// ============================================================
-// テーマ定義
-// ============================================================
 const THEMES = {
   racing: {
-    name: 'レーシング',
-    desc: '漆黒×レッド。スポーティで攻める',
-    thumbBg: 'linear-gradient(135deg, #0a0a0c 0%, #1a1a22 100%)',
-    thumbColor: '#ff1e27',
+    name: 'レーシング', desc: '漆黒×レッド。スポーティで攻める',
+    thumbBg: 'linear-gradient(135deg, #0a0a0c 0%, #1a1a22 100%)', thumbColor: '#ff1e27',
     vars: {
       bg: '#0a0a0c', card: '#141419', primary: '#ff1e27', primaryHover: '#e00009',
       text: '#ffffff', textGray: '#a0a0ab', border: '#22222a',
@@ -467,10 +427,8 @@ const THEMES = {
     ]
   },
   minimal: {
-    name: 'ミニマル',
-    desc: '白×黒。余白美と洗練',
-    thumbBg: '#fafafa',
-    thumbColor: '#111111',
+    name: 'ミニマル', desc: '白×黒。余白美と洗練',
+    thumbBg: '#fafafa', thumbColor: '#111111',
     vars: {
       bg: '#fafafa', card: '#ffffff', primary: '#111111', primaryHover: '#333333',
       text: '#111111', textGray: '#666666', border: '#e5e5e5',
@@ -489,10 +447,8 @@ const THEMES = {
     ]
   },
   luxury: {
-    name: 'ラグジュアリー',
-    desc: '漆黒×ゴールド。高級感',
-    thumbBg: 'linear-gradient(135deg, #0a0a0a 0%, #1a1510 100%)',
-    thumbColor: '#d4af37',
+    name: 'ラグジュアリー', desc: '漆黒×ゴールド。高級感',
+    thumbBg: 'linear-gradient(135deg, #0a0a0a 0%, #1a1510 100%)', thumbColor: '#d4af37',
     vars: {
       bg: '#0a0a0a', card: '#141210', primary: '#d4af37', primaryHover: '#b8962e',
       text: '#ffffff', textGray: '#aaaaaa', border: '#2a2418',
@@ -508,10 +464,8 @@ const THEMES = {
     ]
   },
   gradient: {
-    name: 'グラデーション',
-    desc: '流れる色彩。没入感',
-    thumbBg: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
-    thumbColor: '#ffffff',
+    name: 'グラデーション', desc: '流れる色彩。没入感',
+    thumbBg: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)', thumbColor: '#ffffff',
     vars: {
       bg: '#1a1a2e', card: 'rgba(255,255,255,0.1)', primary: '#f093fb', primaryHover: '#e07ce8',
       text: '#ffffff', textGray: 'rgba(255,255,255,0.8)', border: 'rgba(255,255,255,0.15)',
@@ -527,10 +481,8 @@ const THEMES = {
     ]
   },
   neobrutalism: {
-    name: 'ネオブルータリズム',
-    desc: '太線・ビビッド・生のグリッド',
-    thumbBg: '#f0f0f0',
-    thumbColor: '#000000',
+    name: 'ネオブルータリズム', desc: '太線・ビビッド・生のグリッド',
+    thumbBg: '#f0f0f0', thumbColor: '#000000',
     vars: {
       bg: '#f0f0f0', card: '#ffffff', primary: '#ff4757', primaryHover: '#e03040',
       text: '#000000', textGray: '#333333', border: '#000000',
@@ -549,10 +501,8 @@ const THEMES = {
     ]
   },
   natural: {
-    name: 'ナチュラル',
-    desc: 'アースカラー。温かみ',
-    thumbBg: '#f5f0e8',
-    thumbColor: '#8a7e6e',
+    name: 'ナチュラル', desc: 'アースカラー。温かみ',
+    thumbBg: '#f5f0e8', thumbColor: '#8a7e6e',
     vars: {
       bg: '#f5f0e8', card: '#ffffff', primary: '#8a7e6e', primaryHover: '#6e6252',
       text: '#3d3229', textGray: '#8a7e6e', border: '#e0d8cc',
@@ -568,10 +518,8 @@ const THEMES = {
     ]
   },
   tech: {
-    name: 'テック',
-    desc: 'ダーク×ネオン。スタートアップ',
-    thumbBg: '#0d1117',
-    thumbColor: '#58a6ff',
+    name: 'テック', desc: 'ダーク×ネオン。スタートアップ',
+    thumbBg: '#0d1117', thumbColor: '#58a6ff',
     vars: {
       bg: '#0d1117', card: '#161b22', primary: '#58a6ff', primaryHover: '#4090e0',
       text: '#c9d1d9', textGray: '#8b949e', border: '#30363d',
@@ -587,10 +535,8 @@ const THEMES = {
     ]
   },
   editorial: {
-    name: 'エディトリアル',
-    desc: '雑誌風。セリフ体と大胆な余白',
-    thumbBg: '#ffffff',
-    thumbColor: '#111111',
+    name: 'エディトリアル', desc: '雑誌風。セリフ体と大胆な余白',
+    thumbBg: '#ffffff', thumbColor: '#111111',
     vars: {
       bg: '#ffffff', card: '#fafafa', primary: '#111111', primaryHover: '#333333',
       text: '#111111', textGray: '#666666', border: '#dddddd',
@@ -607,9 +553,6 @@ const THEMES = {
   },
 };
 
-// ============================================================
-// セクションのレンダリング（エディタプレビュー用）
-// ============================================================
 function renderSectionPreviewHtml(section, themeId) {
   const t = THEMES[themeId] || THEMES.racing;
   const v = t.vars;
@@ -679,9 +622,6 @@ function renderSectionPreviewHtml(section, themeId) {
   return inner;
 }
 
-// ============================================================
-// HTML生成（公開用）
-// ============================================================
 function generateSiteHtml() {
   const t = THEMES[state.themeId] || THEMES.racing;
   const v = t.vars;
@@ -697,7 +637,6 @@ function generateSiteHtml() {
 
   const fonts = `<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Noto+Sans+JP:wght@400;700;900&family=Noto+Serif+JP:wght@400;600;700&family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">`;
 
-  // ===== サイト設定を1回だけ展開 =====
   const cfg        = state.siteSettings || {};
   const logoText   = cfg.logoText || state.maker?.makerName || 'MY SITE';
   const headerBg   = cfg.headerBg || v.bg;
@@ -762,9 +701,6 @@ ${fonts}
 </html>`;
 }
 
-// ============================================================
-// 現在ページのプレビューHTML生成
-// ============================================================
 function generatePagePreviewHtml() {
   const page = state.pages.find(p => p.id === state.currentPageId);
   const t = THEMES[state.themeId] || THEMES.racing;
@@ -776,14 +712,12 @@ function generatePagePreviewHtml() {
 
   const sections = page.sections.map(sec => renderSectionPreviewHtml(sec, state.themeId)).join('');
 
-  // 編集用プレビューではリンク遷移させない（span）
   const navHtml = state.pages.map(p =>
     `<span class="nav-link ${p.id === page.id ? 'active' : ''}">${escapeHtml(p.name)}</span>`
   ).join('');
 
   const fonts = `<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Noto+Sans+JP:wght@400;700;900&family=Noto+Serif+JP:wght@400;600;700&family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">`;
 
-  // ===== サイト設定を1回だけ展開 =====
   const cfg        = state.siteSettings || {};
   const logoText   = cfg.logoText || state.maker?.makerName || 'MY SITE';
   const headerBg   = cfg.headerBg || v.bg;
@@ -806,9 +740,9 @@ ${fonts}
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
-  body { margin: 0; background: ${v.bg}; color: ${v.text}; font-family: ${v.fontMain}; line-height: 1.6; overflow-x: hidden; }
+  body { margin: 0; background: ${v.bg}; color: ${v.text}; font-family: ${v.fontMain}; line-height: 1.6; overflow-x: clip; }
   a { color: inherit; text-decoration: none; }
-  header { position: sticky; top: 0; z-index: 100; background: ${headerBg}; backdrop-filter: blur(8px); border-bottom: 1px solid ${v.border}; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
+  header { z-index: 100; background: ${headerBg}; border-bottom: 1px solid ${v.border}; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
   .logo { font-family: ${v.fontEn}; font-size: 1.2rem; font-weight: 900; letter-spacing: 2px; color: ${logoColor}; }
   nav { display: flex; gap: 16px; flex-wrap: wrap; }
   .nav-link { font-size: 0.85rem; font-weight: 600; color: ${navColor}; cursor: default; }
@@ -828,14 +762,34 @@ ${fonts}
   ${sections}
   <footer>${footerBody}</footer>
   <script>
+    // ===== 高さ計測：body の getBoundingClientRect は使わない =====
+    // iframe が伸びると body がその高さに追随して無限ループするため、
+    // body 内の子要素の「一番下の座標」で計測する。
     function sendHeight() {
-      var h = Math.ceil(document.body.getBoundingClientRect().height);
-      parent.postMessage({ type: 'preview-height', height: h }, '*');
+      try {
+        var body = document.body;
+        if (!body) return;
+        var scrollY = window.pageYOffset || window.scrollY || 0;
+        var maxBottom = 0;
+        for (var i = 0; i < body.children.length; i++) {
+          var el = body.children[i];
+          var r = el.getBoundingClientRect();
+          var bottom = r.bottom + scrollY;
+          if (bottom > maxBottom) maxBottom = bottom;
+        }
+        var h = Math.ceil(maxBottom);
+        if (!isFinite(h) || h < 200) h = 200;
+        if (h > 20000) h = 20000;
+        parent.postMessage({ type: 'preview-height', height: h }, '*');
+      } catch (e) {
+        parent.postMessage({ type: 'preview-height', height: 400 }, '*');
+      }
     }
     window.addEventListener('load', sendHeight);
     window.addEventListener('resize', sendHeight);
     if (window.ResizeObserver) {
-      new ResizeObserver(sendHeight).observe(document.body);
+      var ro = new ResizeObserver(sendHeight);
+      ro.observe(document.documentElement);
     }
     setTimeout(sendHeight, 100);
     setTimeout(sendHeight, 500);
@@ -845,9 +799,6 @@ ${fonts}
 </html>`;
 }
 
-// ============================================================
-// プレビュー更新・切替
-// ============================================================
 let previewUpdateTimer = null;
 function schedulePreviewUpdate() {
   if (state.canvasView !== 'preview') return;
@@ -861,6 +812,8 @@ function updateCanvasPreview() {
   delete iframe.dataset.lastHeight;
   iframe.style.height = '400px';
   iframe.srcdoc = generatePagePreviewHtml();
+  const body = document.querySelector('.canvas-body');
+  if (body) body.scrollTop = 0;
 }
 
 function switchCanvasView(view) {
@@ -878,30 +831,28 @@ function switchCanvasView(view) {
     previewEl.style.display = 'block';
     updateCanvasPreview();
   }
+  const body = document.querySelector('.canvas-body');
+  if (body) body.scrollTop = 0;
 }
 
-// 中央キャンバスのタブ切替
 document.querySelector('.canvas-tabs').addEventListener('click', (e) => {
   const tab = e.target.closest('[data-canvas-view]');
   if (tab) switchCanvasView(tab.dataset.canvasView);
 });
 
-// iframe から高さ通知を受け取る（無限ループ防止）
 window.addEventListener('message', (e) => {
-  if (e.data && e.data.type === 'preview-height') {
-    const iframe = $('canvas-preview-iframe');
-    if (!iframe) return;
-    const h = Math.max(200, Math.min(e.data.height, 20000));
-    if (iframe.dataset.lastHeight !== String(h)) {
-      iframe.dataset.lastHeight = String(h);
-      iframe.style.height = h + 'px';
-    }
+  if (!e.data || e.data.type !== 'preview-height') return;
+  const iframe = $('canvas-preview-iframe');
+  if (!iframe) return;
+  const raw = Number(e.data.height);
+  if (!isFinite(raw) || raw <= 0) return;
+  const h = Math.max(200, Math.min(Math.round(raw), 20000));
+  if (iframe.dataset.lastHeight !== String(h)) {
+    iframe.dataset.lastHeight = String(h);
+    iframe.style.height = h + 'px';
   }
 });
 
-// ============================================================
-// エディタ：ページタブ
-// ============================================================
 function renderPageTabs() {
   const container = $('page-tabs');
   const html = state.pages.map(p => {
@@ -912,9 +863,6 @@ function renderPageTabs() {
   container.innerHTML = html + addBtn;
 }
 
-// ============================================================
-// エディタ：セクションリスト
-// ============================================================
 function renderSectionList() {
   const page = state.pages.find(p => p.id === state.currentPageId);
   const container = $('section-list');
@@ -942,14 +890,8 @@ function renderSectionList() {
 }
 
 const SECTION_NAMES = {
-  hero: 'ヒーロー',
-  text: 'テキスト',
-  image: '画像',
-  cards: 'カード',
-  gallery: 'ギャラリー',
-  timeline: 'タイムライン',
-  contact: 'コンタクト',
-  spacer: '余白',
+  hero: 'ヒーロー', text: 'テキスト', image: '画像', cards: 'カード',
+  gallery: 'ギャラリー', timeline: 'タイムライン', contact: 'コンタクト', spacer: '余白',
 };
 const SECTION_DESCS = {
   hero: sec => sec.props.title || 'タイトル未設定',
@@ -962,9 +904,6 @@ const SECTION_DESCS = {
   spacer: sec => `高さ ${sec.props.height || 60}px`,
 };
 
-// ============================================================
-// エディタ：プロパティパネル
-// ============================================================
 function renderPropertiesPanel() {
   const container = $('properties-content');
   const page = state.pages.find(p => p.id === state.currentPageId);
@@ -1011,7 +950,6 @@ function renderPropertiesPanel() {
 
   container.innerHTML = html;
 
-  // 共通テキストバインド
   const bindText = (id, key) => {
     const el = $(id);
     if (el) el.addEventListener('input', () => {
@@ -1022,7 +960,6 @@ function renderPropertiesPanel() {
   };
   ['title','subtitle','btnText','btnHref','bgImage','body','caption','height','src'].forEach(k => bindText('p-' + k, k));
 
-  // 画像アップロード
   const uploadBtn = $('p-upload-img');
   if (uploadBtn) uploadBtn.addEventListener('click', () => {
     const input = document.createElement('input');
@@ -1043,7 +980,6 @@ function renderPropertiesPanel() {
     input.click();
   });
 
-  // カード
   if (section.type === 'cards') {
     renderCardsList(section);
     const addBtn = $('p-add-card');
@@ -1056,7 +992,6 @@ function renderPropertiesPanel() {
     });
   }
 
-  // ギャラリー
   if (section.type === 'gallery') {
     renderGalleryList(section);
     const addBtn = $('p-add-gallery');
@@ -1081,7 +1016,6 @@ function renderPropertiesPanel() {
     });
   }
 
-  // タイムライン
   if (section.type === 'timeline') {
     renderTimelineList(section);
     const addBtn = $('p-add-timeline');
@@ -1178,9 +1112,6 @@ function renderTimelineList(section) {
   });
 }
 
-// ============================================================
-// セクション追加
-// ============================================================
 const DEFAULT_SECTION_PROPS = {
   hero: () => ({ title: 'キャッチコピー', subtitle: 'サブタイトルをここに', btnText: 'VIEW MORE', btnHref: '#', bgImage: '' }),
   text: () => ({ title: '見出し', body: '本文をここに書きます。' }),
@@ -1196,8 +1127,7 @@ function addSection(type) {
   const page = state.pages.find(p => p.id === state.currentPageId);
   if (!page) return;
   const sec = {
-    id: uuid(),
-    type,
+    id: uuid(), type,
     props: DEFAULT_SECTION_PROPS[type] ? DEFAULT_SECTION_PROPS[type]() : {},
   };
   page.sections.push(sec);
@@ -1208,9 +1138,6 @@ function addSection(type) {
   toast('セクションを追加しました');
 }
 
-// ============================================================
-// 保存・復元
-// ============================================================
 function scheduleSave() {
   state.isDirty = true;
   clearTimeout(scheduleSave._t);
@@ -1220,11 +1147,8 @@ function scheduleSave() {
 function saveDraft() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      slug: state.slug,
-      themeId: state.themeId,
-      pages: state.pages,
-      currentPageId: state.currentPageId,
-      siteSettings: state.siteSettings,
+      slug: state.slug, themeId: state.themeId, pages: state.pages,
+      currentPageId: state.currentPageId, siteSettings: state.siteSettings,
       savedAt: Date.now(),
     }));
     state.isDirty = false;
@@ -1240,9 +1164,6 @@ function clearDraft() {
   try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
 }
 
-// ============================================================
-// サイト情報表示
-// ============================================================
 function renderSiteInfo() {
   const bar = $('site-info-bar');
   if (!state.site || !state.site.hasSite) { bar.style.display = 'none'; return; }
@@ -1254,9 +1175,6 @@ function renderSiteInfo() {
   $('delete-btn').style.display = 'inline-block';
 }
 
-// ============================================================
-// 初期化
-// ============================================================
 async function initAfterLogin(user) {
   showLoader();
   try {
@@ -1285,7 +1203,6 @@ async function initAfterLogin(user) {
       state.mode = state.site.mode === 'manual' ? 'manual' : 'gui';
     }
 
-    // ドラフト復元 or テーマ初期化
     const draft = loadDraft();
     if (draft && draft.slug === state.slug && draft.pages) {
       state.themeId = draft.themeId || 'racing';
@@ -1299,10 +1216,8 @@ async function initAfterLogin(user) {
       state.siteSettings = { ...DEFAULT_SETTINGS };
     }
 
-    // 手動モードのHTML（最低限）
     if (!state.html) state.html = '<!DOCTYPE html>\n<html>\n<head><meta charset="UTF-8"><title>My Page</title></head>\n<body>\n<h1>Hello</h1>\n</body>\n</html>';
 
-    // 初期描画
     renderPageTabs();
     renderSectionList();
     renderPropertiesPanel();
@@ -1315,9 +1230,6 @@ async function initAfterLogin(user) {
   } finally { hideLoader(); }
 }
 
-// ============================================================
-// モード切替
-// ============================================================
 function switchMode(mode, save = true) {
   if (save && state.isDirty) {
     if (!confirm('保存されていない変更があります。モードを切り替えますか？')) return;
@@ -1339,15 +1251,11 @@ function switchMode(mode, save = true) {
   }
 }
 
-// ============================================================
-// イベント登録
-// ============================================================
 $('mode-tabs').addEventListener('click', (e) => {
   const btn = e.target.closest('button[data-mode]');
   if (btn) switchMode(btn.dataset.mode);
 });
 
-// ページタブ
 $('page-tabs').addEventListener('click', (e) => {
   const delBtn = e.target.closest('[data-del-page]');
   if (delBtn) {
@@ -1383,7 +1291,6 @@ $('page-tabs').addEventListener('click', (e) => {
   }
 });
 
-// セクションリスト（並び替え・削除・選択）
 $('section-list').addEventListener('click', (e) => {
   const upBtn = e.target.closest('[data-move-up]');
   const downBtn = e.target.closest('[data-move-down]');
@@ -1433,13 +1340,11 @@ $('section-list').addEventListener('click', (e) => {
   }
 });
 
-// セクションパレット
 document.querySelector('.section-palette').addEventListener('click', (e) => {
   const btn = e.target.closest('button[data-add]');
   if (btn) addSection(btn.dataset.add);
 });
 
-// スラッグ
 $('slug-input').addEventListener('input', (e) => {
   state.slug = e.target.value;
   const err = validateSlugLocal(state.slug);
@@ -1465,7 +1370,6 @@ $('slug-check-btn').addEventListener('click', async () => {
   finally { hideLoader(); }
 });
 
-// テーマ選択
 $('theme-btn').addEventListener('click', () => {
   const grid = $('theme-grid');
   grid.innerHTML = Object.entries(THEMES).map(([id, t]) => `
@@ -1492,7 +1396,6 @@ $('theme-grid').addEventListener('click', (e) => {
 });
 $('theme-modal-close').addEventListener('click', () => $('theme-modal').classList.remove('active'));
 
-// プレビュー
 $('preview-btn').addEventListener('click', async () => {
   let html;
   if (state.mode === 'gui') {
@@ -1508,9 +1411,6 @@ $('preview-btn').addEventListener('click', async () => {
 });
 $('preview-modal-close').addEventListener('click', () => $('preview-modal').classList.remove('active'));
 
-// ============================================================
-// 公開
-// ============================================================
 async function uploadGuiImages() {
   const upload = async (src) => {
     if (!src || !src.startsWith('data:')) return src;
@@ -1519,18 +1419,11 @@ async function uploadGuiImages() {
     const res = await api('uploadSiteImage', { slug: state.slug, filename, dataUrl: src });
     return res.absoluteUrl;
   };
-
   for (const page of state.pages) {
     for (const sec of page.sections) {
-      if (sec.type === 'image' && sec.props.src) {
-        sec.props.src = await upload(sec.props.src);
-      }
-      if (sec.type === 'hero' && sec.props.bgImage) {
-        sec.props.bgImage = await upload(sec.props.bgImage);
-      }
-      if (sec.type === 'gallery' && sec.props.images) {
-        sec.props.images = await Promise.all(sec.props.images.map(upload));
-      }
+      if (sec.type === 'image' && sec.props.src) sec.props.src = await upload(sec.props.src);
+      if (sec.type === 'hero' && sec.props.bgImage) sec.props.bgImage = await upload(sec.props.bgImage);
+      if (sec.type === 'gallery' && sec.props.images) sec.props.images = await Promise.all(sec.props.images.map(upload));
     }
   }
 }
@@ -1565,7 +1458,6 @@ $('publish-btn').addEventListener('click', async () => {
   finally { hideLoader(); }
 });
 
-// 削除
 $('delete-btn').addEventListener('click', async () => {
   if (!state.site || !state.site.hasSite) return;
   const slug = state.site.slug;
@@ -1588,7 +1480,6 @@ $('delete-btn').addEventListener('click', async () => {
   finally { hideLoader(); }
 });
 
-// 認証
 onAuthStateChanged(auth, async (user) => {
   state.user = user;
   if (user) await initAfterLogin(user);
