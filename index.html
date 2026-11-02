@@ -740,7 +740,7 @@ ${fonts}
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
-  body { margin: 0; background: ${v.bg}; color: ${v.text}; font-family: ${v.fontMain}; line-height: 1.6; overflow-x: clip; }
+  body { margin: 0; background: ${v.bg}; color: ${v.text}; font-family: ${v.fontMain}; line-height: 1.6; overflow-x: hidden; }
   a { color: inherit; text-decoration: none; }
   header { z-index: 100; background: ${headerBg}; border-bottom: 1px solid ${v.border}; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
   .logo { font-family: ${v.fontEn}; font-size: 1.2rem; font-weight: 900; letter-spacing: 2px; color: ${logoColor}; }
@@ -767,17 +767,9 @@ ${fonts}
     // body 内の子要素の「一番下の座標」で計測する。
     function sendHeight() {
       try {
-        var body = document.body;
-        if (!body) return;
-        var scrollY = window.pageYOffset || window.scrollY || 0;
-        var maxBottom = 0;
-        for (var i = 0; i < body.children.length; i++) {
-          var el = body.children[i];
-          var r = el.getBoundingClientRect();
-          var bottom = r.bottom + scrollY;
-          if (bottom > maxBottom) maxBottom = bottom;
-        }
-        var h = Math.ceil(maxBottom);
+        // scrollHeight は iframe のビューポート高さに依存せず、
+        // コンテンツの実高さを返す（無限ループしない）
+        var h = Math.ceil(document.body.scrollHeight);
         if (!isFinite(h) || h < 200) h = 200;
         if (h > 20000) h = 20000;
         parent.postMessage({ type: 'preview-height', height: h }, '*');
@@ -788,8 +780,9 @@ ${fonts}
     window.addEventListener('load', sendHeight);
     window.addEventListener('resize', sendHeight);
     if (window.ResizeObserver) {
+      // body を監視（body は min-height がないので iframe 高さに依存しない）
       var ro = new ResizeObserver(sendHeight);
-      ro.observe(document.documentElement);
+      ro.observe(document.body);
     }
     setTimeout(sendHeight, 100);
     setTimeout(sendHeight, 500);
@@ -803,15 +796,16 @@ let previewUpdateTimer = null;
 function schedulePreviewUpdate() {
   if (state.canvasView !== 'preview') return;
   clearTimeout(previewUpdateTimer);
-  previewUpdateTimer = setTimeout(updateCanvasPreview, 300);
+  previewUpdateTimer = setTimeout(updateCanvasPreview, 150);
 }
 
 function updateCanvasPreview() {
   const iframe = $('canvas-preview-iframe');
   if (!iframe) return;
   delete iframe.dataset.lastHeight;
-  iframe.style.height = '400px';
-  iframe.srcdoc = generatePagePreviewHtml();
+  iframe.style.height = '200px';
+  const html = generatePagePreviewHtml();
+  iframe.srcdoc = html;
   const body = document.querySelector('.canvas-body');
   if (body) body.scrollTop = 0;
 }
@@ -845,12 +839,11 @@ window.addEventListener('message', (e) => {
   const iframe = $('canvas-preview-iframe');
   if (!iframe) return;
   const raw = Number(e.data.height);
-  if (!isFinite(raw) || raw <= 0) return;
+  if (typeof raw !== 'number' || !isFinite(raw)) return;
   const h = Math.max(200, Math.min(Math.round(raw), 20000));
-  if (iframe.dataset.lastHeight !== String(h)) {
-    iframe.dataset.lastHeight = String(h);
-    iframe.style.height = h + 'px';
-  }
+  if (iframe.dataset.lastHeight === String(h)) return;
+  iframe.dataset.lastHeight = String(h);
+  iframe.style.height = h + 'px';
 });
 
 function renderPageTabs() {
